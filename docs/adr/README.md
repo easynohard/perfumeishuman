@@ -14,3 +14,4 @@
 | [0002](./0002-open-reading-login-for-actions.md) | 열람은 비로그인 개방, 작성·추천은 소셜 로그인 필수 | Accepted |
 | [0003](./0003-controlled-vocabulary-tags.md) | 태그·계열은 관리자 지정 통제 어휘 사용 | Accepted |
 | [0004](./0004-single-page-writing-form.md) | 시향기 작성 폼은 한 페이지 스크롤 + 100자 숏폼 | Accepted |
+| [0005](./0005-seo-slug-urls.md) | 콘텐츠 URL에 SEO 슬러그 사용 | Accepted |
