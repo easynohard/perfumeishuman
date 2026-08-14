@@ -26,8 +26,8 @@
 1. 문제 정의 + MoSCoW 범위표 + 비기능 원칙 정리 — ✅ 완료 (`docs/01-problem-definition-scope.md`)
 2. User Story + Acceptance Criteria — ✅ 완료 (`docs/02-user-stories.md`)
 3. 사이트맵 / IA (화면 목록과 화면 간 이동 흐름) — ✅ 완료 (`docs/03-sitemap-ia.md`, 관련 ADR 0005)
-4. 와이어프레임 (박스 수준의 저해상도 화면 정의) ⬅️ 다음 단계
-5. 각 화면에서 필요한 데이터 항목 정리 (데이터 모델링)
+4. 와이어프레임 (박스 수준의 저해상도 화면 정의) — ✅ 완료 (`docs/04-wireframes.md`, 관련 ADR 0006)
+5. 각 화면에서 필요한 데이터 항목 정리 (데이터 모델링) ⬅️ 다음 단계
 6. ERD (스키마 설계)
 7. API 명세 (OpenAPI)
 8. UI 상세 디자인 (색상, 컴포넌트, 반응형 등) — 6~7단계와 병렬 진행 가능
