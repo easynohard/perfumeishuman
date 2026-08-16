@@ -1,6 +1,6 @@
 # 0006. 시향기 태그 선택지 세트와 응답 구조 확정
 
-- Status: **Accepted** (2026-08-14 확정)
+- Status: **Superseded by [0007](./0007-reduce-tag-questions-to-two.md)** (2026-08-16) — "만나는 때"·"어울리는 사람" 질문이 삭제됨. 아래 내용은 2026-08-14 당시 기록으로 유지.
 - 관련 문서: [0003-controlled-vocabulary-tags.md](./0003-controlled-vocabulary-tags.md) (통제 어휘 원칙 — 본 ADR은 그 선택지의 최종 세트를 확정), [04-wireframes.md](../04-wireframes.md) §4.1·§6
 
 ## Context

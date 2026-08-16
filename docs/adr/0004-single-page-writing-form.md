@@ -1,6 +1,6 @@
 # 0004. 시향기 작성 폼은 한 페이지 스크롤 + 100자 숏폼
 
-- Status: **Accepted** (2026-08-07 확정, 2026-08-09 소급 기록)
+- Status: **Accepted** (2026-08-07 확정, 2026-08-09 소급 기록) — 단, 태그 질문 종수는 이후 [0007](./0007-reduce-tag-questions-to-two.md)에서 4종→2종으로 변경됨. 한 페이지 스크롤 구조 자체는 그대로 유효.
 - 관련 문서: [01-problem-definition-scope.md](../01-problem-definition-scope.md) §2 M5, §3 N3, [02-user-stories.md](../02-user-stories.md) D1·B1
 
 ## Context

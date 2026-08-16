@@ -1,6 +1,6 @@
 # 0003. 태그·계열은 관리자 지정 통제 어휘 사용
 
-- Status: **Accepted** (2026-08-07 확정, 2026-08-09 소급 기록)
+- Status: **Accepted** (2026-08-07 확정, 2026-08-09 소급 기록) — 단, 프로필 태그 질문 종수는 이후 [0007](./0007-reduce-tag-questions-to-two.md)에서 4종→2종으로 변경됨. 통제 어휘 원칙 자체는 그대로 유효.
 - 관련 문서: [01-problem-definition-scope.md](../01-problem-definition-scope.md) §2 S1, [02-user-stories.md](../02-user-stories.md) A3·D1
 
 ## Context
