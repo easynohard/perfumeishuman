@@ -21,3 +21,4 @@
 | [0009](./0009-perfume-image-sourcing-and-takedown.md) | 향수 이미지는 단순 팩샷 누끼로 조달, 이의 시 즉시 제거 | Accepted |
 | [0010](./0010-minimal-personal-data-collection.md) | 개인정보 최소 수집 — 이메일 미수집, 신고자 IP 미저장 | Accepted |
 | [0011](./0011-soft-delete-reviews.md) | 시향기 삭제는 소프트 삭제 + 처리 이력 | Accepted |
+| [0012](./0012-identifier-formats.md) | 식별자 형식 확정 — 시향기 슬러그·닉네임 자동 생성·프로필 공개 식별자 | Accepted |
