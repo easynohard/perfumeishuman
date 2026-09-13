@@ -9,7 +9,7 @@
 
 이미 사용자가 최종 확정한 사항. 재논의하지 말고, 변경이 필요하면 반드시 사용자에게 먼저 확인할 것.
 
-- 비로그인: 열람 + 작성 폼(`/write`) 진입·입력까지 가능. **추천과 시향기 등록(제출)** 은 소셜 로그인 필수 (조작 방지, 1인 1추천) — 로그인은 등록 버튼을 누르는 순간에만 요구하고, 그 전 입력 내용은 보존되어 로그인 후 자동 등록된다 (2026-08-19 변경)
+- 비로그인: 열람만 가능. **작성 폼(`/write`) 진입·추천·시향기 등록(제출)** 은 모두 소셜 로그인 필수 (조작 방지, 1인 1추천) — "시향기 쓰기" 버튼을 누르는 순간 로그인부터 거치고, 로그인 완료 후 (선택했던 향수가 그대로 채워진) 빈 작성 화면으로 진입한다 (ADR 0014, 2026-09-13 변경 — 2026-08-19 결정을 되돌림)
 - 관리자: 모든 게시물 CRUD + 디자인·광고 처리 등 전체 액세스
 - 내 시향기 모아보기 + 받은 추천 수 확인 기능 필수
 - 작성 폼: 위저드 아님, 한 페이지 스크롤
@@ -125,7 +125,7 @@
 
 **ID 규칙 변경**: Epic F 스토리(F1~F4)와 충돌하여 3단계의 핵심 흐름 ID를 `F1~F4` → **`FL1~FL4`**로 변경했다. 이후 `F*`는 스토리, `FL*`은 흐름을 가리킨다.
 
-ADR 진행 상황: ✅ [0008 탈퇴 시 익명 보존](docs/adr/0008-anonymized-retention-on-withdrawal.md) · ✅ [0009 이미지 조달·즉시 대응](docs/adr/0009-perfume-image-sourcing-and-takedown.md) · ✅ [0010 개인정보 최소 수집](docs/adr/0010-minimal-personal-data-collection.md) · ✅ [0011 소프트 삭제](docs/adr/0011-soft-delete-reviews.md) / 작성 예정: 무-AI 정책 · 의존성 라이선스 정책 · 테스트·품질 게이트 기준.
+ADR 진행 상황: ✅ [0008 탈퇴 시 익명 보존](docs/adr/0008-anonymized-retention-on-withdrawal.md) · ✅ [0009 이미지 조달·즉시 대응](docs/adr/0009-perfume-image-sourcing-and-takedown.md) · ✅ [0010 개인정보 최소 수집](docs/adr/0010-minimal-personal-data-collection.md) · ✅ [0011 소프트 삭제](docs/adr/0011-soft-delete-reviews.md) · ✅ [0014 쓰기 전 로그인](docs/adr/0014-login-before-write-entry.md) / 작성 예정: 무-AI 정책 · 의존성 라이선스 정책 · 테스트·품질 게이트 기준.
 
 관련 산출물: ✅ [`docs/legal/image-rights-and-takedown.md`](docs/legal/image-rights-and-takedown.md) (확정) · 🔶 [`docs/legal/terms-of-service.md`](docs/legal/terms-of-service.md) (제7~10조 확정, 나머지 8단계).
 **개인정보처리방침(8단계)의 입력값은 5단계 §5 개인정보 항목표에서 확보됐다.** 8단계 약관 작성 시 **약관 개정 공지 방식을 "서비스 내 게시"로 명시**해야 한다 — 이메일을 수집하지 않으므로(ADR 0010) F2 AC가 이 조문에 의존한다.
