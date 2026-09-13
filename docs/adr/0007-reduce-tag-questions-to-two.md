@@ -1,6 +1,6 @@
 # 0007. 태그 질문 4종 → 2종 축소 ("만나는 상황"·"어울리는 사람" 삭제)
 
-- Status: **Accepted** (2026-08-16 확정)
+- Status: **Accepted** (2026-08-16 확정) — 나이대 응답 규칙(아래 "나이대(단일 선택)")은 2026-09-13 [0013](./0013-age-tag-multi-select.md)로 대체됨(1~3개 다중 선택). 그 외 내용(2종 축소 결정 자체)은 그대로 유효.
 - 관련 문서: [0003-controlled-vocabulary-tags.md](./0003-controlled-vocabulary-tags.md), [0004-single-page-writing-form.md](./0004-single-page-writing-form.md), [0006-tag-vocabulary-and-answer-structure.md](./0006-tag-vocabulary-and-answer-structure.md) (본 ADR이 대체), [04-wireframes.md](../04-wireframes.md) §1.3·§2.8·§4.1·§6, [02-user-stories.md](../02-user-stories.md) D1
 
 ## Context

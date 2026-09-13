@@ -22,3 +22,4 @@
 | [0010](./0010-minimal-personal-data-collection.md) | 개인정보 최소 수집 — 이메일 미수집, 신고자 IP 미저장 | Accepted |
 | [0011](./0011-soft-delete-reviews.md) | 시향기 삭제는 소프트 삭제 + 처리 이력 | Accepted |
 | [0012](./0012-identifier-formats.md) | 식별자 형식 확정 — 시향기 슬러그·닉네임 자동 생성·프로필 공개 식별자 | Accepted |
+| [0013](./0013-age-tag-multi-select.md) | 나이대 태그를 단일 선택 → 1~3개 다중 선택으로 변경 | Accepted |
