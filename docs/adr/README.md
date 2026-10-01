@@ -23,3 +23,6 @@
 | [0011](./0011-soft-delete-reviews.md) | 시향기 삭제는 소프트 삭제 + 처리 이력 | Accepted |
 | [0012](./0012-identifier-formats.md) | 식별자 형식 확정 — 시향기 슬러그·닉네임 자동 생성·프로필 공개 식별자 | Accepted |
 | [0013](./0013-age-tag-multi-select.md) | 나이대 태그를 단일 선택 → 1~3개 다중 선택으로 변경 | Accepted |
+| [0014](./0014-login-before-write-entry.md) | 시향기 쓰기 전 로그인 | Accepted |
+| [0015](./0015-accord-final-set.md) | 계열(accord) 최종 세트 11개 확정 | Accepted |
+| [0016](./0016-aggregate-update-and-soft-delete-scope.md) | 집계 컬럼은 애플리케이션 증감 + 주기 보정, 소프트 삭제 제외는 기본 스코프 | Accepted |
