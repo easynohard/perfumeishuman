@@ -26,3 +26,4 @@
 | [0014](./0014-login-before-write-entry.md) | 시향기 쓰기 전 로그인 | Accepted |
 | [0015](./0015-accord-final-set.md) | 계열(accord) 최종 세트 11개 확정 | Accepted |
 | [0016](./0016-aggregate-update-and-soft-delete-scope.md) | 집계 컬럼은 애플리케이션 증감 + 주기 보정, 소프트 삭제 제외는 기본 스코프 | Accepted |
+| [0017](./0017-api-design-principles.md) | API 설계 원칙 — REST·세션 쿠키·오프셋 페이지네이션 | Accepted |
