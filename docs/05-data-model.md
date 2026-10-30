@@ -5,7 +5,7 @@
 > 근거 문서: [01-problem-definition-scope.md](./01-problem-definition-scope.md) · [02-user-stories.md](./02-user-stories.md) · [03-sitemap-ia.md](./03-sitemap-ia.md) · [04-wireframes.md](./04-wireframes.md)
 > 관련 ADR: [0003](./adr/0003-controlled-vocabulary-tags.md) · [0005](./adr/0005-seo-slug-urls.md) · [0007](./adr/0007-reduce-tag-questions-to-two.md) · [0008](./adr/0008-anonymized-retention-on-withdrawal.md) · [0009](./adr/0009-perfume-image-sourcing-and-takedown.md) · **[0010](./adr/0010-minimal-personal-data-collection.md)** · **[0011](./adr/0011-soft-delete-reviews.md)** (이번 단계에서 신규 작성) · [0013](./adr/0013-age-tag-multi-select.md) (2026-09-13 추가)
 > 부가 산출물(품질·법무 트랙): §5 개인정보 항목표 · §6 이미지 권리 필드
-> 개정: 2026-10-28 — 계열의 영문 이름을 `accord`로 통일: 화면 URL `/accords` → `/accords`, `/accords/:slug` → `/accords/:slug`. 근거: [ADR 0019](./adr/0019-accord-naming-unification.md) (§2.3·§2.6·§3.8)
+> 개정: 2026-10-28 — 계열의 영문 이름을 `accord`로 통일: 화면 URL `/notes` → `/accords`, `/notes/:slug` → `/accords/:slug`. 근거: [ADR 0019](./adr/0019-accord-naming-unification.md) (§2.3·§2.6·§3.8)
 
 ---
 
