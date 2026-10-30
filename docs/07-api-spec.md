@@ -1,9 +1,9 @@
 # 7단계: API 명세 (OpenAPI)
 
 > 프로젝트: **perfumeishuman — "향수가 사람이라면?"**
-> 작성일: 2026-10-03 · 상태: **🔶 진행 중 — §1 설계 원칙 확정 / §2 이후 작성 예정**
+> 작성일: 2026-10-03 · 상태: **🔶 진행 중 — §1 설계 원칙 확정 / §2 초안 작성됨(2026-10-28, 검토 대기) / §3 이후 작성 예정**
 > 근거 문서: [02-user-stories.md](./02-user-stories.md) · [03-sitemap-ia.md](./03-sitemap-ia.md) · [04-wireframes.md](./04-wireframes.md) · [05-data-model.md](./05-data-model.md) · [06-erd.md](./06-erd.md)
-> 관련 ADR: [0005](./adr/0005-seo-slug-urls.md) · [0008](./adr/0008-anonymized-retention-on-withdrawal.md) · [0010](./adr/0010-minimal-personal-data-collection.md) · [0011](./adr/0011-soft-delete-reviews.md) · [0012](./adr/0012-identifier-formats.md) · [0014](./adr/0014-login-before-write-entry.md) · [0016](./adr/0016-aggregate-update-and-soft-delete-scope.md) · [0017](./adr/0017-api-design-principles.md)
+> 관련 ADR: [0005](./adr/0005-seo-slug-urls.md) · [0008](./adr/0008-anonymized-retention-on-withdrawal.md) · [0010](./adr/0010-minimal-personal-data-collection.md) · [0011](./adr/0011-soft-delete-reviews.md) · [0012](./adr/0012-identifier-formats.md) · [0014](./adr/0014-login-before-write-entry.md) · [0016](./adr/0016-aggregate-update-and-soft-delete-scope.md) · [0017](./adr/0017-api-design-principles.md) · [0018](./adr/0018-list-page-size.md) · [0019](./adr/0019-accord-naming-unification.md) · [0020](./adr/0020-reconsent-on-policy-revision.md) · [0021](./adr/0021-admin-report-id-exception.md) · [0022](./adr/0022-defer-reconsent-from-mvp.md)
 
 ## 0. 읽는 법과 진행 순서
 
@@ -12,7 +12,7 @@
 | 절 | 내용 | 상태 |
 |---|---|---|
 | §1 | 설계 원칙 | ✅ 확정 (2026-10-03, ADR 0017) |
-| §2 | 화면별 엔드포인트 도출 (화면 16개 기준) | 🔶 사용자가 초안 작성 중 — 작성 후 검토 |
+| §2 | 화면별 엔드포인트 도출 (화면 16개 기준) | 🔶 초안 작성됨 (2026-10-28) — 검토 대기 |
 | §3 | 화면에 없는 API 점검 (탈퇴·동의 기록·개인정보 열람·소셜 로그인 콜백·신고·이미지 비공개·운영 배치) | ⬜ 예정 |
 | §4 | 엔드포인트별 계약 (요청·응답·권한·갱신 집계·삭제분 규칙) | ⬜ 예정 |
 | §5 | OpenAPI 명세 파일 (`07-api-spec.yaml`) | ⬜ 예정 |
@@ -30,7 +30,7 @@
 | 인증 | 세션 쿠키(`HttpOnly`·`Secure`·`SameSite=Lax`) + 쓰기 요청 CSRF 방어. 세션은 서버 측 저장소 |
 | 권한 | 비로그인 / 회원 / 관리자 / 탈퇴 회원. 소프트 삭제분은 관리자 외에 404 |
 | 에러 | HTTP 상태 코드 + `{ "error": { "code", "message", "fields" } }` |
-| 페이지네이션 | 전부 오프셋, 기본 20개 |
+| 페이지네이션 | 전부 오프셋, 기본 10개 (ADR 0018이 0017의 20개를 보완) |
 | 9단계 제약 | serverless 우선 검토 · 국내 리전 필수 · 비용 최소화 |
 
 ### 1.2 URL 규칙
@@ -47,7 +47,7 @@
 - 모든 API는 `/api/v1/` 아래에 둔다. 화면 URL(`/reviews/:slug` 등)과 겹치지 않게 하기 위함이다.
 - 본인 자원은 `/api/v1/me/...`, 관리자 API는 `/api/v1/admin/...`로 분리한다. 경로 분리는 편의일 뿐 **권한은 서버가 매 요청마다 검사**한다.
 - 쿼리스트링·URL에 세션 id·토큰·개인정보를 넣지 않는다.
-- 공개 식별자는 ADR 0005·0012의 슬러그·랜덤 코드다. 내부 사용자 id 등 순차 값은 요청·응답 어디에도 노출하지 않는다.
+- 공개 식별자는 ADR 0005·0012의 슬러그·랜덤 코드다. 내부 사용자 id 등 순차 값은 요청·응답 어디에도 노출하지 않는다. 유일한 예외는 관리자 전용 신고 API가 신고의 내부 id를 쓰는 것이다([ADR 0021](./adr/0021-admin-report-id-exception.md)).
 
 ### 1.3 인증과 세션
 
@@ -110,16 +110,17 @@
 
 모든 목록 API는 오프셋 방식이다.
 
-- 요청: `?page=1&size=20` — `page`는 1부터 시작, `size`의 기본값은 20이다. 상한은 구현 단계에서 정한다.
+- 요청: `?page=1&size=10` — `page`는 1부터 시작, `size`의 기본값은 **10**이다(사용자·관리자 목록 공통, [ADR 0018](./adr/0018-list-page-size.md)). 상한은 구현 단계에서 정한다.
+- 브랜드 목록(`/brands`)과 계열 목록(`/accords`)은 한 화면에 전부 보여주므로 페이지네이션을 적용하지 않는다.
 - 응답:
 
 ```json
 {
   "items": [ ],
   "page": 1,
-  "size": 20,
+  "size": 10,
   "total_items": 134,
-  "total_pages": 7
+  "total_pages": 14
 }
 ```
 
@@ -140,40 +141,127 @@
 
 ## 2. 화면별 엔드포인트
 
-> **상태: 🔶 작성 대기.** 사용자가 먼저 초안을 작성하고, Claude가 검토한다. 아래 양식의 빈 칸을 채우거나 행을 추가한다.
+> **상태: 🔶 초안 작성됨 (2026-10-28) — 검토 대기.** 04·05를 근거로 Claude가 작성한 초안이다. 승인되면 ✅로 바꾸고 §3으로 넘어간다.
 
-### 2.1 작성 안내
+### 2.1 읽는 법
 
-- 기준은 3단계 사이트맵의 화면 16개다([03-sitemap-ia.md](./03-sitemap-ia.md), 화면 구성은 [04-wireframes.md](./04-wireframes.md)).
-- 이 절은 "어떤 화면이 어떤 API를 부르는가"의 **목록**이다. 요청·응답 필드는 §4에서 정한다.
-- 경로는 §1.2(REST·`/api/v1/`·`/me`·`/admin`)를 따른다.
-- 화면에 없는 API(탈퇴·동의 기록·개인정보 열람·소셜 로그인 콜백·신고·이미지 비공개·운영 배치)는 §3에서 별도로 점검한다. 단, 화면이 직접 부르는 API라면 여기에 넣는다.
-- 한 화면이 API를 여러 개 부르면 행을 늘려서 쓴다. 여러 화면이 같은 API를 쓰면 각 화면에 모두 적는다(중복은 검토 때 합친다).
-- "누가 호출"에는 허용되는 역할을 쓴다. 역할은 §1.4의 비로그인 / 회원 / 관리자다.
+- 기준은 3단계 사이트맵의 화면 16개다([03-sitemap-ia.md](./03-sitemap-ia.md), [04-wireframes.md](./04-wireframes.md)). "어떤 화면이 어떤 API를 부르는가"의 **목록**이며, 요청·응답 필드는 §4에서 정한다.
+- 모든 경로 앞에 `/api/v1`이 붙는다(생략). `{slug}`는 ADR 0005·0012의 슬러그·랜덤 코드, `{code}`는 작성자 프로필 공개 코드다.
+- 마지막 열은 **비로그인 / 회원 / 관리자** 순서이고, ○는 허용, ✕는 불가다. 관리자는 회원의 상위 역할이라(§1.4) 회원이 가능한 일은 관리자도 ○다.
+- **(페이지)** 표시가 있는 목록은 오프셋 페이지네이션이며 기본 10개다([ADR 0018](./adr/0018-list-page-size.md)). 브랜드·계열 목록은 한 번에 전부 내려준다.
+- 여러 화면이 같은 API를 쓰면 처음 나온 행에 적고 이후는 "(재사용)"으로 표시한다.
+- API는 화면이 필요로 하는 것 기준으로 도출했으므로 ERD 테이블과 1:1로 대응하지 않는다. 테이블 → API 대응은 §2.4에 정리한다.
 
-### 2.2 양식
+### 2.2 엔드포인트 표
 
-| 화면 | 메서드 + 경로 | 하는 일 | 누가 호출 (비로그인 / 회원 / 관리자) |
+**게스트 열람 가능**
+
+| 화면 | 메서드 + 경로 | 하는 일 | 비로그인 / 회원 / 관리자 |
 |---|---|---|---|
-| **게스트 열람 가능** | | | |
-| 홈 (피드·브랜드·계열 탭) | | | |
-| 검색 | | | |
-| 브랜드 상세 | | | |
-| 계열 상세 | | | |
-| 향수 상세 | | | |
-| 시향기 상세 | | | |
-| 작성자 프로필 | | | |
-| 이용약관 | | | |
-| 개인정보처리방침 | | | |
-| 도움말·커뮤니티 가이드 | | | |
-| 로그인 게이트(바텀시트) | | | |
-| **멤버 전용** | | | |
-| 시향기 작성 폼 | | | |
-| 내 시향기 (MY) | | | |
-| **관리자** | | | |
-| 시향기 관리 | | | |
-| 향수·브랜드 관리 | | | |
-| 신고 관리 | | | |
+| **전 화면 공통** | `GET /me` | 세션 상태 조회. 비로그인이면 `null`. 로그인 시 닉네임·관리자 여부 등 (필드는 §4) | ○ / ○ / ○ |
+| **홈 — 피드** | `GET /reviews?sort=recommend` (페이지) | 시향기 카드 목록. 추천순 단일 정렬, 동점 시 최신순 | ○ / ○ / ○ |
+| **홈 — 브랜드** | `GET /brands` | 브랜드 전체 목록 (정렬용 이름 기준, 향수 수 포함) | ○ / ○ / ○ |
+| **홈 — 계열** | `GET /accords` | 계열 전체 목록 (고정 표시 순서, 향수 수 포함) | ○ / ○ / ○ |
+| **검색** | `GET /search?q=` (페이지) | 향수·브랜드 통합 부분일치 검색 (한글·영문·별칭) | ○ / ○ / ○ |
+| | `GET /perfumes?sort=popular` (페이지) | 입력 전·결과 없음 시 인기 향수 | ○ / ○ / ○ |
+| **브랜드 상세** | `GET /brands/{slug}` | 브랜드 정보 (로고·이름·향수 수) | ○ / ○ / ○ |
+| | `GET /brands/{slug}/perfumes` (페이지) | 소속 향수 목록 (시향기 수 → 총 추천 수 정렬) | ○ / ○ / ○ |
+| **계열 상세** | `GET /accords/{slug}` | 계열 정보 | ○ / ○ / ○ |
+| | `GET /accords/{slug}/perfumes` (페이지) | 계열 향수 목록 (브랜드명 병기) | ○ / ○ / ○ |
+| **향수 상세** | `GET /perfumes/{slug}` | 향수 정보 (이미지 or 폴백 여부·계열 칩·노트·시향기 수) | ○ / ○ / ○ |
+| | `GET /perfumes/{slug}/reviews?sort=recommend\|latest` (페이지) | 이 향수의 시향기 목록 (정렬 토글) | ○ / ○ / ○ |
+| **시향기 상세** | `GET /reviews/{slug}` | 시향기 전문·프로필 표·작성자·향수 요약. 로그인 시 `my_recommended`·`is_mine` 포함 | ○ / ○ / ○ |
+| | `GET /perfumes/{perfume_slug}/reviews?exclude={slug}` (페이지) | "이 향수의 다른 페르소나" (재사용) | ○ / ○ / ○ |
+| | `POST /reviews/{slug}/recommendation` | 추천. 화면에서는 본인 글이면 버튼이 비활성이고, 서버는 본인 글 요청을 403으로 막는다(최종 방어선) | ✕ / ○ / ○ |
+| | `DELETE /reviews/{slug}/recommendation` | 추천 취소 | ✕ / ○ / ○ |
+| | `POST /reviews/{slug}/reports` | 신고 (사유 4종). 게스트 가능 | ○ / ○ / ○ |
+| **작성자 프로필** | `GET /users/{code}` | 닉네임·시향기 수·받은 추천 수. 탈퇴 회원은 404 | ○ / ○ / ○ |
+| | `GET /users/{code}/reviews` (페이지) | 그 사람의 시향기 목록 (최신순) | ○ / ○ / ○ |
+| **이용약관·처리방침** | `GET /policies/{type}` | 현재 시행 중 버전 본문 (`type` = `terms`\|`privacy`) | ○ / ○ / ○ |
+| | `GET /policies/{type}/versions` | 버전 목록 (시행일 포함) | ○ / ○ / ○ |
+| | `GET /policies/{type}/versions/{version}` | 특정 버전 본문 | ○ / ○ / ○ |
+| **도움말** | (API 없음) | 비버전 정적 콘텐츠 — 프론트 정적 페이지 | — |
+| **로그인 게이트** | `GET /policies/current` | 바텀시트에 표시할 현재 약관·처리방침 버전 요약 | ○ / ○ / ○ |
+| | `GET /auth/{provider}/login` | 소셜 로그인 시작 (공급자 리다이렉트) | ○ / ✕ / ✕ |
+| | (API 없음) `/auth/callback` | 소셜 콜백은 **화면 라우트**가 받는다. 서버가 세션 생성·최초 가입(닉네임 자동 생성)·동의 이력 기록을 처리한 뒤 직전 화면으로 이동한다 | — |
+
+**멤버 전용**
+
+| 화면 | 메서드 + 경로 | 하는 일 | 비로그인 / 회원 / 관리자 |
+|---|---|---|---|
+| **작성 폼** | `GET /perfumes?q=` (페이지) | 향수 선택 검색 | ○ / ○ / ○ |
+| | `GET /tag-questions` | 태그 질문 2종 + 선택지 (표시 순서·최소/최대 개수) | ○ / ○ / ○ |
+| | `GET /prompt-cards/random` | 질문 카드 랜덤 1개 | ✕ / ○ / ○ |
+| | `GET /placeholders` | 회전 예시 문구 목록 | ✕ / ○ / ○ |
+| | `POST /reviews` | 시향기 등록 | ✕ / ○ / ○ |
+| | `GET /reviews/{slug}` (재사용) | 수정 모드 기존 값 로드 | ○ / ○ / ○ |
+| | `PATCH /reviews/{slug}` | 시향기 수정 (본인만) | ✕ / ○ / ○ |
+| **MY** | `GET /me` (재사용) | 닉네임·받은 추천 총합·시향기 수. **개인정보 열람도 이 응답을 확장해 제공**한다 (공급자 구분·가입 시각·최종 로그인 시각·동의 이력). 탈퇴 모달의 "소개한 사람들(N)"도 여기서 | ○ / ○ / ○ |
+| | `GET /me/reviews` (페이지) | 내 시향기 목록 (최신순) | ✕ / ○ / ○ |
+| | `PATCH /me` | 닉네임 변경 | ✕ / ○ / ○ |
+| | `DELETE /reviews/{slug}` | 본인 시향기 삭제 (소프트 삭제) | ✕ / ○ / ○ |
+| | `POST /auth/logout` | 로그아웃 | ✕ / ○ / ○ |
+| | `DELETE /me` | 회원 탈퇴 (익명화·세션 삭제) | ✕ / ○ / ○ |
+
+**관리자**
+
+| 화면 | 메서드 + 경로 | 하는 일 | 비로그인 / 회원 / 관리자 |
+|---|---|---|---|
+| **시향기 관리** | `GET /admin/reviews` (페이지) | 전체 목록 (삭제분 포함, 작성자·향수 검색, 정렬, 신고 수) | ✕ / ✕ / ○ |
+| | `GET /admin/reviews/{slug}` | 삭제분 포함 단건 조회 | ✕ / ✕ / ○ |
+| | `PATCH /admin/reviews/{slug}` | 시향기 수정 | ✕ / ✕ / ○ |
+| | `DELETE /admin/reviews/{slug}` | 삭제 (사유 메모 필수, 처리 주체 `관리자` 기록) | ✕ / ✕ / ○ |
+| **향수·브랜드 관리** | `GET·POST /admin/brands`, `PATCH·DELETE /admin/brands/{slug}` | 브랜드 목록·등록·수정·삭제 | ✕ / ✕ / ○ |
+| | `GET·POST /admin/perfumes`, `PATCH·DELETE /admin/perfumes/{slug}` | 향수 목록·등록·수정·삭제 (삭제 시 경고용 시향기 수 응답) | ✕ / ✕ / ○ |
+| | `PUT /admin/perfumes/{slug}/image` | 이미지 등록·교체 (원본 출처 URL 필수, 수집일 자동, 재수집 금지 대조 경고 포함) | ✕ / ✕ / ○ |
+| | `PATCH /admin/perfumes/{slug}/image` | 권리 상태 변경 (정상/이의접수/비공개/영구제거) | ✕ / ✕ / ○ |
+| | `POST /admin/brands/{slug}/image-hide` (+ 해제) | 브랜드 단위 이미지 일괄 비공개 | ✕ / ✕ / ○ |
+| | `GET /admin/perfumes/{slug}/history` | 최근 등록·수정 이력 (관리자 조치 로그에서 대상=이 향수) | ✕ / ✕ / ○ |
+| **신고 관리** | `GET /admin/reports` (페이지) | 신고 목록 (상태 필터, 누적 수). **신고자(회원이면 닉네임·공개 코드, 게스트면 `null`)는 이 응답에만 포함**되며 일반 API에는 나타나지 않는다 | ✕ / ✕ / ○ |
+| | `PATCH /admin/reports/{id}` | 처리 (`delete` / `ignore`). `delete`는 시향기 삭제 흐름과 동일. `{id}`는 신고의 내부 id(ADR 0021) | ✕ / ✕ / ○ |
+
+### 2.3 이 절에서 확정된 결정 (2026-10-28)
+
+| 항목 | 결정 |
+|---|---|
+| 페이지 크기 | 사용자·관리자 목록 모두 기본 10개, 브랜드·계열 목록은 전체 노출 — [ADR 0018](./adr/0018-list-page-size.md) |
+| 계열 이름 | 화면 URL·API·DB 모두 `accord`로 통일 (`/accords`, `accord_has_perfume` 등) — [ADR 0019](./adr/0019-accord-naming-unification.md) |
+| 추천 취소 | 가능. `DELETE /reviews/{slug}/recommendation` |
+| 본인 글 추천 | 화면에서 버튼 비활성(04 §2.8), 서버는 403으로 최종 방어 |
+| 신고자 정보 | 관리자 API에서만 노출 |
+| 신고 식별자 | 관리자 전용 API라 신고의 내부 id(`{id}`)를 쓰는 예외 — [ADR 0021](./adr/0021-admin-report-id-exception.md) |
+| 로그인 콜백 | API가 아니라 화면 라우트 `/auth/callback`이 처리 |
+| 운영 문구(질문 카드·placeholder·태그 문구·닉네임 어휘 풀) | MVP는 DB 시드·직접 편집. 관리자 화면·API 없음 (화면 16개 유지) |
+| 약관 개정 시 재동의 | **MVP에서는 하지 않는다.** `POST /me/consents`·`pending_consent`·`CONSENT_REQUIRED`는 MVP에 없고, 향후 도입 설계안은 ADR 0020·0022에 보존 — [ADR 0022](./adr/0022-defer-reconsent-from-mvp.md) |
+| 개인정보 열람 | `GET /me` 확장으로 제공 (별도 경로 없음) |
+| 신고 중복 방지 | 게스트는 브라우저 로컬 + 대상별 총량 한도(ADR 0010), 서버는 총량 초과 시 429. 회원은 (신고자, 대상) 중복을 서버가 409로 막는다 |
+| 탈퇴 후 재로그인 | 소셜 식별자가 파기되므로 신규 가입으로 처리. 이전 글은 되찾을 수 없다(04 §4.2 모달이 이미 고지) |
+| 소프트 삭제 복구 | **MVP에는 없다.** 관리자·본인 모두 복구 API 없음. 도입하려면 새 ADR (증가 방향 집계 갱신 필요 — ADR 0016) |
+
+### 2.4 ERD 테이블 ↔ API 대응
+
+| 테이블 | API에서의 모습 |
+|---|---|
+| `brand` · `perfume` · `accord` | 자원으로 노출: `/brands`, `/perfumes`, `/accords` (+ `/admin/*`) |
+| `post` | `/reviews` (화면 용어 사용) |
+| `user` | `/me`, `/users/{code}`. 내부 id는 숨기고 공개 코드만 사용 |
+| `policyversion` | `/policies/{type}/versions` |
+| `tagquestion` · `tagselection` | `/tag-questions`. 선택지는 질문 응답에 포함 |
+| `taganswer` | `post` 요청·응답의 `tags` 필드에 포함. 선택 순서는 배열 순서 |
+| `prompt_card` · `placeholder` | `/prompt-cards/random`, `/placeholders` (조회 전용) |
+| `recommendation` | 하위 자원 `/reviews/{slug}/recommendation` (POST·DELETE, 목록 조회 없음) |
+| `report` | `/reviews/{slug}/reports`(접수), `/admin/reports`(관리) |
+| `perfumeimage` | `perfume` 응답에 포함. 관리자만 `/admin/perfumes/{slug}/image`로 다룸 |
+| `accord_has_perfume` | 노출 안 함. 향수 등록·수정 요청의 `accords` 배열로 대체 |
+| `adminlog` | 별도 쓰기 API 없음 — 모든 관리자 쓰기의 부수 효과. 읽기는 `/admin/perfumes/{slug}/history` 하나 |
+| `confirmhistory` | 별도 경로 없음. 로그인(가입) 처리가 기록하고, `GET /me` 열람에 포함 |
+| `forbiddenrestore` | 별도 경로 없음. 이미지 등록 시 서버가 대조해 경고만 응답에 포함 |
+
+테이블과 대응하지 않는 API도 있다: 검색·인기 목록(파생), `my_recommended`·`is_mine`·이미지 폴백 여부(응답 시점 계산값), 세션·인증(`/me`·`/auth/*` — 세션 저장소는 9단계), 탈퇴(`DELETE /me` — 익명화·세션 삭제·파기를 한 번에 일으키는 복합 동작).
+
+### 2.5 열려 있는 것
+
+§2 작성 중 열려 있던 3건(계열 화면 URL, 재동의, 신고 `{id}`)은 모두 확정됐다(§2.3, ADR 0019·0021·0022 — 재동의는 MVP 제외). 남은 일은 §3·§4다.
 
 ## 부록 A. 열어 둔 미결 사항
 
@@ -183,12 +271,13 @@
 |---|---|
 | 세션 저장소 제품·세션 만료 시간·CSRF 방어의 구체 방식 | 9단계 기술 스택 |
 | 429 요청 한도 수치, `size` 상한 | 구현 단계 |
-| 추천 취소 가능 여부 (취소 가능하면 ADR 0016의 증감 대상에 반영) | §3·§4 |
+| ✅ 추천 취소 가능 여부 — **가능으로 확정** (2026-10-28, 01 N4·02 C2·04 §2.8·ADR 0001에 이미 확정돼 있던 내용을 확인). ADR 0016의 증감 대상(`post.recommend_count`·`perfume.total_recommend_count`·`user.received_recommend_count`)에 이미 포함. §4에서 `DELETE /reviews/{slug}/recommendation`의 갱신 대상으로 명시 | §4 |
 | 탈퇴 회원 프로필(`/users/:id`) 조회 시 API 응답 (03 사이트맵의 "진입 불가"에 대응해 404 후보) | §4 |
-| 탈퇴 후 같은 소셜 계정으로 재로그인할 때의 처리 (소셜 식별자가 파기되므로 신규 가입으로 처리될 것으로 보이나 정책 확인 필요) | §3 |
-| 시향기 소프트 삭제 복구 기능 여부 (ADR 0016 Consequences) | §3 |
-| 게스트 신고의 중복 방지 규칙을 API가 받는 방식 (ADR 0010: 브라우저 로컬 + 대상별 총량) | §3·§4 |
+| ✅ 탈퇴 후 같은 소셜 계정으로 재로그인 — **신규 가입으로 처리, 이전 글은 되찾을 수 없음** (2026-10-28 확정) | — |
+| ✅ 시향기 소프트 삭제 복구 — **MVP에는 없음** (2026-10-28 확정). 도입하려면 새 ADR | — |
+| ✅ 게스트 신고 중복 방지 — 브라우저 로컬 + 대상별 총량 한도(ADR 0010), 서버는 총량 초과 시 429. 회원은 (신고자, 대상) 중복을 서버가 409로 막음 (2026-10-28 확정). 한도 수치는 구현 단계 | §4 |
+| ✅ 약관 개정 시 재동의 — **MVP 제외** (2026-10-28, ADR 0022). 향후 도입 설계안은 ADR 0020·0022에 보존 | — |
 
 ## 다음 작업
 
-§2 **화면별 엔드포인트 도출**부터 진행한다. 3단계 사이트맵의 화면 16개를 순서대로 훑으며, 화면마다 호출해야 하는 API를 표로 정리해 승인받는다.
+§2 초안을 검토·승인받는다(§2.5의 열린 3건 포함). 이어서 §3 **화면에 없는 API 점검**(탈퇴·동의 기록·소셜 로그인 처리·신고·이미지 비공개·운영 배치)으로 넘어간다.
