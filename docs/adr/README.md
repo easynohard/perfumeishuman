@@ -32,3 +32,4 @@
 | [0020](./0020-reconsent-on-policy-revision.md) | 약관·처리방침 개정 시 재동의 — 거부하면 탈퇴 안내 | Superseded by 0022 |
 | [0021](./0021-admin-report-id-exception.md) | 관리자 전용 신고 API는 내부 id를 식별자로 쓴다 (0017의 예외) | Accepted |
 | [0022](./0022-defer-reconsent-from-mvp.md) | 약관 개정 시 재동의는 MVP에서 제외, 향후 도입 설계안 보존 | Accepted |
+| [0023](./0023-one-review-per-user-per-perfume.md) | 한 사람은 한 향수에 시향기를 1개만 쓸 수 있다 | Accepted |
