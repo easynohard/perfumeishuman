@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>향수가 사람이라면? — 시연 데모</title>
+<style>
+  :root {
+    --bg:#F7F8FB; --surface:#fff; --ink:#131730; --muted:#5C6379; --line:#DCE0EC;
+    --accent:#002FA5; --band-read:#E9EEFA;
+    --rose:#C13D6F; --band-member:#F9EAF1;
+    --gold:#7A5E17; --gold-line:#C9A227; --band-admin:#F6EFDC;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:14px/1.6 "Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+  button{font:inherit;color:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ===== 페이지 레이아웃 ===== */
+  .page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;gap:12px}
+  .mini-tools{display:flex;gap:14px;font-size:12px}
+  .mini-tools button{border:0;background:none;color:var(--muted);padding:0}
+  .mini-tools button:hover{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;border-bottom:3px solid var(--accent);padding-bottom:14px;margin-bottom:20px}
+  .eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 4px}
+  h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.01em}
+  .lede{margin:4px 0 0;color:var(--muted);font-size:13px}
+  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+  .stage{display:grid;grid-template-columns:310px minmax(0,1fr) 250px;gap:22px;align-items:start}
+  @media (max-width:1100px){.stage{grid-template-columns:minmax(0,1fr)}.trail-col{display:none}}
+
+  /* ===== 좌측: 시연 시나리오 ===== */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .panel h2{margin:0 0 4px;font-size:14px;font-weight:800}
+  .panel .sub{margin:0 0 12px;color:var(--muted);font-size:12px}
+  .scen-list{display:grid;gap:8px}
+  .scen{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:9px 12px}
+  .scen:hover{border-color:var(--accent)}
+  .scen.on{border-color:var(--accent);background:var(--band-read)}
+  .scen .id{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--accent);margin-right:6px}
+  .scen .t{font-weight:700;font-size:13px}
+  .scen .d{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
+  .scen.rose .id{color:var(--rose)} .scen.rose.on{border-color:var(--rose);background:var(--band-member)}
+  .steps{list-style:none;margin:14px 0 0;padding:0;border-top:1px solid var(--line)}
+  .steps li{display:flex;gap:9px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:12.5px;color:var(--muted)}
+  .steps li .dot{flex:0 0 20px;height:20px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .steps li.done{color:var(--ink)} .steps li.done .dot{background:var(--accent);border-color:var(--accent);color:#fff}
+  .steps li.cur{color:var(--ink);font-weight:700} .steps li.cur .dot{border-color:var(--rose);color:var(--rose);animation:pulse 1.4s infinite}
+  .steps .note{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:1px}
+  .finish{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--band-read);border:1px solid var(--accent);font-size:12.5px}
+  .finish b{color:var(--accent)}
+  .tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn-s{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600}
+  .btn-s:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-s.gold:hover{border-color:var(--gold-line);color:var(--gold)}
+
+  /* ===== 우측: 이동 경로 ===== */
+  .now{font-family:var(--mono);font-size:12px;word-break:break-all}
+  .zone{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:999px;margin-left:6px;font-family:inherit}
+  .z-guest{color:var(--accent);background:var(--band-read)} .z-member{color:var(--rose);background:var(--band-member)} .z-admin{color:var(--gold);background:var(--band-admin)}
+  .trail{list-style:none;margin:10px 0 0;padding:0 0 0 12px;border-left:2px solid var(--line);max-height:420px;overflow:auto}
+  .trail li{position:relative;padding:3px 0 3px 10px;font-size:12px;color:var(--muted)}
+  .trail li::before{content:"";position:absolute;left:-17px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .trail li.m::before{background:var(--rose)} .trail li.a::before{background:var(--gold-line)}
+  .trail li:first-child{color:var(--ink);font-weight:700}
+  .trail li .p{display:block;font-family:var(--mono);font-size:10.5px;opacity:.8}
+
+  /* ===== 폰 프레임 ===== */
+  .center{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%;max-width:390px}
+  .phone{position:relative;width:100%;height:min(780px,calc(100vh - 70px));flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:30px;box-shadow:0 8px 30px rgba(19,23,48,.08);overflow:hidden;display:flex;flex-direction:column}
+  .scroll{flex:1;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
+  .scroll::-webkit-scrollbar{width:0}
+  .hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px 10px;font-weight:800;font-size:15px;flex:0 0 auto}
+  .hdr .l{display:flex;align-items:center;gap:8px;min-width:0}
+  .hdr .ic{border:0;background:none;padding:2px 4px;color:var(--muted);font-size:16px;line-height:1}
+  .hdr .ic:hover{color:var(--accent)}
+  .hdr .brand{color:var(--accent);letter-spacing:-.02em}
+  .hdr .save{font-size:11px;font-weight:600;color:var(--muted)}
+  .tabs{display:flex;gap:18px;padding:0 16px;border-bottom:1px solid var(--line)}
+  .tab{border:0;background:none;padding:2px 0 9px;font-size:13.5px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tab.on{color:var(--ink);font-weight:800;border-color:var(--accent)}
+  .tbar{flex:0 0 auto;display:flex;border-top:1px solid var(--line);background:var(--surface);height:54px}
+  .tbar button{flex:1;border:0;background:none;font-size:12.5px;color:var(--muted)}
+  .tbar button.on{color:var(--ink);font-weight:800}
+  .tbar button.w{color:var(--rose);font-weight:800}
+  .sticky{flex:0 0 auto;border-top:1px solid var(--line);padding:10px 14px;background:var(--surface)}
+  .cta{width:100%;border:0;border-radius:11px;padding:13px;font-weight:800;font-size:14px;background:var(--rose);color:#fff}
+  .cta:hover{filter:brightness(.94)}
+  .cta.off{background:var(--line);color:var(--muted)}
+  .cta.ghost{background:var(--surface);color:var(--rose);border:1.5px solid var(--rose)}
+
+  .sec{padding:16px 16px 6px;font-size:13px;font-weight:800}
+  .sec .n{color:var(--muted);font-weight:600}
+  .hint{padding:0 16px 8px;font-size:12px;color:var(--muted)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 16px;font-size:13.5px}
+  .row:hover{background:var(--band-read)}
+  .row .t{font-weight:700} .row .s{color:var(--muted);font-size:12px;white-space:nowrap}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px}
+  .tile{border:1px solid var(--line);border-radius:10px;padding:16px 10px;text-align:center;font-weight:700;background:none}
+  .tile:hover{border-color:var(--accent);color:var(--accent)}
+  .tile .s{display:block;font-size:11.5px;font-weight:400;color:var(--muted);margin-top:2px}
+
+  .card{display:block;width:calc(100% - 32px);margin:10px 16px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 13px 11px}
+  .card:hover{border-color:var(--accent)}
+  .card .top{font-weight:800;font-size:13px}
+  .card .top span{color:var(--muted);font-weight:600}
+  .card hr{border:0;border-top:1px dashed var(--line);margin:8px 0}
+  .card .q{font-size:13.5px;line-height:1.6}
+  .card .tgl{margin-top:8px;font-size:12px;color:var(--muted)}
+  .card .ft{display:flex;justify-content:space-between;margin-top:6px;font-size:11.5px;color:var(--muted)}
+  .card .ft .h{color:var(--rose);font-weight:700}
+  .more{display:block;width:100%;border:0;background:none;padding:12px;font-weight:700;font-size:12.5px;color:var(--accent)}
+  .empty{margin:22px 16px;text-align:center;color:var(--muted);font-size:13px}
+
+  .pcard{margin:12px 16px;border:1px dashed var(--line);border-radius:12px;padding:18px 14px;text-align:center;background:var(--band-read)}
+  .pcard .b{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.04em}
+  .pcard .n{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:2px 0 8px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  .chip{border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-size:12px;background:var(--surface);color:var(--ink)}
+  button.chip:hover{border-color:var(--accent);color:var(--accent)}
+  .rights{margin:14px 16px 16px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+  .rights button{display:block;border:0;background:none;padding:0;margin-top:3px;color:var(--accent);font-weight:700;font-size:11px}
+  .sorts{display:flex;gap:12px;padding:0 16px 4px;font-size:12.5px}
+  .sorts button{border:0;background:none;padding:0;color:var(--muted)} .sorts button.on{color:var(--ink);font-weight:800;border-bottom:2px solid var(--accent)}
+
+  .big{padding:16px 16px 6px;font-size:16px;line-height:1.7;font-weight:600}
+  .meta{padding:2px 16px 8px;color:var(--muted);font-size:12px}
+  .link{border:0;background:none;padding:0;color:var(--accent);font-weight:700;font-size:inherit}
+  .link:hover{text-decoration:underline}
+  .ptab{margin:6px 16px 8px;font-size:13px}
+  .ptab div{display:flex;gap:14px;padding:6px 0;border-top:1px dashed var(--line)} .ptab div:first-child{border:0}
+  .ptab .k{width:50px;color:var(--muted);flex:0 0 auto}
+  .rec{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 32px);margin:12px 16px;border:1.5px solid var(--rose);border-radius:12px;padding:14px;background:var(--surface);color:var(--rose);font-weight:800;font-size:15px}
+  .rec:hover{background:var(--band-member)}
+  .rec.on{background:var(--rose);color:#fff}
+  .rec .c{font-family:var(--mono);font-weight:400}
+  .report{display:block;margin:0 auto 6px;border:0;background:none;color:var(--muted);font-size:11.5px;text-decoration:underline}
+  .stat{margin:10px 16px;border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;justify-content:space-between;font-weight:800}
+  .stat .v{color:var(--rose);font-family:var(--mono)}
+  .nick{padding:14px 16px 0;font-size:17px;font-weight:800}
+  .acts{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
+  .mini{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:2px 10px;font-size:11.5px;font-weight:600}
+  .mini:hover{border-color:var(--rose);color:var(--rose)}
+  .mine-badge{display:inline-block;font-size:10.5px;font-weight:700;color:var(--rose);background:var(--band-member);padding:0 7px;border-radius:999px;margin-left:6px}
+  .policy{padding:6px 16px 20px;font-size:12.5px;color:var(--muted)} .policy h4{color:var(--ink);margin:14px 0 2px;font-size:13px}
+  .policy ul{margin:4px 0;padding-left:18px}
+  .linkrow{display:flex;gap:14px;justify-content:center;padding:10px;font-size:12px}
+
+  /* 작성 폼 */
+  .wchip{display:flex;align-items:center;justify-content:space-between;margin:6px 16px;border:1.5px solid var(--rose);border-radius:10px;padding:10px 12px;font-weight:700;font-size:13.5px}
+  .guide{margin:0 16px 4px;font-size:11.5px;color:var(--muted)}
+  .wh{padding:12px 16px 0;font-weight:800;font-size:14px;line-height:1.5}
+  .ta{position:relative;margin:10px 16px 6px}
+  .ta textarea{width:100%;min-height:96px;resize:none;border:1.5px solid var(--line);border-radius:10px;padding:11px 11px 22px;font:inherit;font-size:14px;line-height:1.6;color:var(--ink);background:var(--surface)}
+  .ta textarea:focus{outline:none;border-color:var(--rose)}
+  .ta .cnt{position:absolute;right:10px;bottom:6px;font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .qbtn{display:block;margin:0 auto 6px;border:1px dashed var(--rose);background:none;border-radius:999px;color:var(--rose);font-weight:700;font-size:12.5px;padding:6px 16px}
+  .qbtn:hover{background:var(--band-member)}
+  .bubble{margin:6px 16px 4px;border-radius:12px 12px 12px 2px;background:var(--band-member);padding:9px 12px;font-size:13px;color:var(--ink)}
+  .tagq{padding:14px 16px 4px;font-size:13px;font-weight:800} .tagq span{font-weight:500;color:var(--muted)}
+  .tgrid{display:flex;flex-wrap:wrap;gap:8px;padding:6px 16px 8px}
+  .tg{border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 13px;font-size:13px}
+  .tg:hover{border-color:var(--rose)}
+  .tg.on{border-color:var(--rose);background:var(--band-member);color:var(--rose);font-weight:800}
+  .shake{animation:shake .4s}
+  .sres{margin:0 16px}
+  .sin{margin:8px 16px;width:calc(100% - 32px);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;background:var(--surface);color:var(--ink)}
+  .sin:focus{outline:none;border-color:var(--accent)}
+
+  /* 시트 · 모달 · 토스트 */
+  .scrim{position:absolute;inset:0;background:rgba(19,23,48,.42);z-index:20;display:flex}
+  .scrim.bot{align-items:flex-end} .scrim.mid{align-items:center;justify-content:center;padding:18px}
+  .sheet{width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:12px 20px 22px;animation:up .22s ease-out}
+  .sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px}
+  .sheet h3{margin:0 0 4px;text-align:center;font-size:16px}
+  .sheet .why{text-align:center;color:var(--muted);font-size:12.5px;margin-bottom:14px}
+  .soc{display:block;width:100%;border:1.5px solid var(--line);border-radius:11px;padding:12px;font-weight:700;font-size:13.5px;background:var(--surface);margin-bottom:9px}
+  .soc:hover{border-color:var(--rose);color:var(--rose)}
+  .fine{font-size:11px;color:var(--muted);line-height:1.65;text-align:center;margin-top:8px}
+  .modal{width:100%;background:var(--surface);border-radius:16px;padding:20px 18px;animation:pop .18s ease-out}
+  .modal h3{margin:0 0 10px;text-align:center;font-size:15.5px}
+  .modal ul{margin:0 0 14px;padding-left:18px;font-size:12.5px;line-height:1.75}
+  .modal p{margin:0 0 14px;font-size:13px;text-align:center;color:var(--muted)}
+  .brow{display:flex;gap:10px} .brow button{flex:1;border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:10px;font-weight:700;font-size:13px}
+  .brow .dg{border-color:var(--rose);color:var(--rose)} .brow .pr{background:var(--rose);border-color:var(--rose);color:#fff}
+  .toast{position:absolute;left:16px;right:16px;bottom:74px;z-index:30;background:var(--ink);color:#fff;border-radius:11px;padding:10px 14px;font-size:12.5px;text-align:center;animation:up .2s ease-out;pointer-events:none}
+
+  .pulse{animation:pulse 1.4s infinite;border-radius:10px}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(193,61,111,.55)}70%{box-shadow:0 0 0 9px rgba(193,61,111,0)}100%{box-shadow:0 0 0 0 rgba(193,61,111,0)}}
+  @keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+  /* 관리자 */
+  .adm{width:100%;max-width:820px;background:var(--surface);border:1px solid var(--gold-line);border-radius:14px;overflow:hidden;display:grid;grid-template-columns:150px minmax(0,1fr);min-height:560px}
+  .adm nav{border-right:1px solid var(--line);background:var(--band-admin);padding:14px 0}
+  .adm nav button{display:block;width:100%;text-align:left;border:0;background:none;padding:10px 16px;font-size:13px;color:var(--muted)}
+  .adm nav button.on{color:var(--gold);font-weight:800;background:var(--surface)}
+  .adm main{padding:16px 18px;overflow-x:auto}
+  .adm h3{margin:0 0 4px;font-size:15px} .adm .sub{color:var(--muted);font-size:12px;margin:0 0 12px}
+  .adm table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
+  .adm th,.adm td{text-align:left;padding:8px 8px;border-top:1px solid var(--line);vertical-align:top}
+  .adm th{border:0;color:var(--muted);font-size:11.5px}
+  .adm tr.del td{color:var(--muted);text-decoration:line-through} .adm tr.del td:last-child{text-decoration:none}
+  .adm .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:0 7px;border-radius:999px;background:var(--band-admin);color:var(--gold)}
+  .adm .bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap}
+  .adm .frm{display:grid;gap:8px;max-width:360px;margin:12px 0;padding:12px;border:1px dashed var(--gold-line);border-radius:10px}
+  .adm .frm input{border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:inherit;font-size:12.5px}
+  .adm .frm .warn{color:var(--rose);font-size:11.5px}
+  @media (max-width:560px){.adm{grid-template-columns:100px minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="center" id="center"></section>
+  <div class="mini-tools" id="miniTools"></div>
+</div>
+
+<script>
+/* =====================================================================
+   더미 데이터 — 사진 없음, 전부 가상
+   ===================================================================== */
+const AGES = ['10대','20대','30대','40대','50대+'];
+const MOODS = ['차분한','장난기 많은','도도한','다정한','신비로운','시크한','순수한','자유로운','섹시한','지적인','상큼발랄한','우아한'];
+const QCARDS = [
+  '이 사람의 MBTI는?','이 사람이 제일 좋아하는 요일은?','이 사람의 직업을 맞혀보세요','이 사람이 약속에 늦는다면 그 이유는?',
+  '이 사람과 단둘이 엘리베이터에 탄다면?','이 사람의 휴대폰 배경화면은?','이 사람이 주말에 하는 일은?','이 사람이 카페에서 시키는 메뉴는?',
+  '이 사람의 첫인상과 두 번째 인상은 어떻게 다를까요?','이 사람이 헤어질 때 마지막으로 하는 말은?','이 사람이 학교 다닐 때 별명은?','이 사람이 화났을 때 어떻게 행동할까요?'
+];
+const PLACEHOLDERS = ['첫 출근날 긴장한 신입사원 같은…','비 오는 날 우산을 같이 쓰자고 말 못 하는 선배 같은…','일요일 오후 이불 속에서 안 나오는 사람 같은…','파티에 제일 늦게 와서 제일 먼저 주인공이 되는…'];
+
+const SEED = {
+  brands:[
+    {id:'chanel',name:'샤넬',en:'Chanel'},{id:'diptyque',name:'딥티크',en:'Diptyque'},{id:'lelabo',name:'르 라보',en:'Le Labo'},
+    {id:'byredo',name:'바이레도',en:'Byredo'},{id:'jomalone',name:'조 말론',en:'Jo Malone'},{id:'tamburins',name:'탬버린즈',en:'Tamburins'}
+  ],
+  accords:['시트러스','플로럴','우디','머스크','앰버','그린','파우더리'],
+  perfumes:[
+    {id:'p1',b:'diptyque',name:'오 로즈',acc:['플로럴','파우더리'],note:'장미 · 라이치 · 시더우드'},
+    {id:'p2',b:'diptyque',name:'필로시코스',acc:['그린','우디'],note:'무화과잎 · 코코넛 · 시더우드'},
+    {id:'p3',b:'byredo',name:'블랑쉬',acc:['머스크','파우더리'],note:'화이트로즈 · 알데하이드 · 머스크'},
+    {id:'p4',b:'byredo',name:'집시 워터',acc:['우디','시트러스'],note:'레몬 · 주니퍼 · 샌달우드'},
+    {id:'p5',b:'jomalone',name:'라임 바질 앤 만다린',acc:['시트러스','그린'],note:'라임 · 바질 · 화이트 머스크'},
+    {id:'p6',b:'jomalone',name:'잉글리쉬 페어 앤 프리지아',acc:['플로럴','시트러스'],note:'배 · 프리지아 · 패출리'},
+    {id:'p7',b:'chanel',name:'코코 마드모아젤',acc:['플로럴','앰버'],note:'오렌지 · 재스민 · 패출리'},
+    {id:'p8',b:'chanel',name:'블루 드 샤넬',acc:['우디','시트러스'],note:'자몽 · 생강 · 시더'},
+    {id:'p9',b:'tamburins',name:'퍼퓸 쉘',acc:['머스크','앰버'],note:'머스크 · 바닐라 · 앰버'},
+    {id:'p10',b:'lelabo',name:'상탈 33',acc:['우디','앰버'],note:'샌달우드 · 가죽 · 카다멈'},
+    {id:'p11',b:'lelabo',name:'어나더 13',acc:['머스크'],note:'암브록산 · 재스민 · 머스크'}
+  ],
+  users:[
+    {id:'u1',nick:'수줍은베르가못'},{id:'u2',nick:'비누향유령'},{id:'u3',nick:'졸린자몽'},{id:'u4',nick:'새벽의무화과'},
+    {id:'u5',nick:'화요일의머스크'},{id:'u6',nick:'말많은샌달우드'},{id:'u7',nick:'투덜이라벤더'},{id:'u8',nick:'user_731204',withdrawn:true}
+  ],
+  reviews:[
+    {id:'r1',p:'p1',u:'u1',t:'첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.',a:['20대'],m:['차분한','순수한'],rec:128,ago:12},
+    {id:'r2',p:'p3',u:'u2',t:'세탁 갓 끝난 흰 셔츠 같은 사람. 말수는 적지만 다정한.',a:['30대'],m:['다정한','차분한'],rec:94,ago:9},
+    {id:'r3',p:'p7',u:'u3',t:'파티에서 제일 늦게 도착해서 제일 먼저 주인공 되는 사람. 본인은 모름.',a:['20대','30대'],m:['도도한','우아한'],rec:151,ago:20},
+    {id:'r4',p:'p5',u:'u4',t:'일요일 아침 베란다에서 바질 화분에 물 주는 옆집 형. 괜히 웃게 됨.',a:['30대'],m:['상큼발랄한','자유로운'],rec:77,ago:6},
+    {id:'r5',p:'p2',u:'u5',t:'책 읽다가 무화과나무 밑에서 잠든 대학원생. 깨우면 철학적으로 화냄.',a:['20대'],m:['지적인','신비로운'],rec:112,ago:15},
+    {id:'r6',p:'p10',u:'u6',t:'말은 없는데 옆에 있으면 이상하게 안정되는 사람. 목재 가구점 사장님 느낌.',a:['40대'],m:['차분한','시크한'],rec:66,ago:4},
+    {id:'r7',p:'p8',u:'u7',t:'소개팅에 정장 입고 나왔는데 대화는 의외로 허술한 사람. 호감.',a:['30대'],m:['시크한','장난기 많은'],rec:58,ago:3},
+    {id:'r8',p:'p9',u:'u1',t:'막 샤워하고 나온 연인의 목덜미. 이 사람이 누구든 일단 안아줘야 함.',a:['20대','30대'],m:['다정한','섹시한'],rec:143,ago:11},
+    {id:'r9',p:'p4',u:'u3',t:'여행 마지막 날, 배낭 메고 혼자 해변 걷는 사람. 이름은 모르고 싶음.',a:['30대','40대'],m:['자유로운','신비로운'],rec:71,ago:18},
+    {id:'r10',p:'p11',u:'u2',t:'친구의 친구인데 이상하게 계속 마주치는 사람. 어느새 번호 저장함.',a:['20대'],m:['신비로운','다정한'],rec:49,ago:2},
+    {id:'r11',p:'p1',u:'u6',t:'비 오는 날 우산을 같이 쓰자고 말 못 하고 서 있는 고등학교 선배.',a:['10대','20대'],m:['순수한','차분한'],rec:85,ago:7},
+    {id:'r12',p:'p3',u:'u5',t:'아무 말 안 했는데 이미 이해받은 기분이 드는 사람. 조용한 상담사.',a:['30대'],m:['차분한','다정한'],rec:38,ago:14},
+    {id:'r13',p:'p7',u:'u4',t:'엘리베이터에서 마주치면 일부러 한 층 더 타고 싶은 사람.',a:['30대'],m:['섹시한','도도한'],rec:102,ago:5},
+    {id:'r14',p:'p5',u:'u7',t:'하교길 레모네이드 가게 알바생. 거스름돈보다 미소를 더 줌.',a:['10대','20대'],m:['상큼발랄한','장난기 많은'],rec:54,ago:8},
+    {id:'r15',p:'p2',u:'u8',t:'숲속 카페 사장님인데 사실 전직 탐험가. 커피 내리며 무용담 시작.',a:['40대'],m:['지적인','자유로운'],rec:33,ago:25},
+    {id:'r16',p:'p8',u:'u2',t:'월요일 아침 회의실에서 혼자 여유로운 팀장님. 부럽지만 존경은 함.',a:['40대'],m:['시크한','우아한'],rec:47,ago:1},
+    {id:'r17',p:'p9',u:'u3',t:'일요일 오후 이불 속 같은 사람. 약속 취소해도 이해해 줄 것 같음.',a:['20대'],m:['다정한','순수한'],rec:69,ago:10},
+    {id:'r18',p:'p6',u:'u4',t:'봄 소풍 가는 길에 도시락 먼저 펼치는 사람. 항상 김밥을 더 쌈.',a:['20대'],m:['상큼발랄한','우아한'],rec:31,ago:13},
+    {id:'r19',p:'p10',u:'u5',t:'골동품 가게에서 오래된 시계를 고치는 노신사. 말투가 느리고 따뜻함.',a:['50대+'],m:['우아한','신비로운'],rec:52,ago:16}
+  ],
+  reports:[
+    {id:'x1',r:'r7',why:'특정 인물 암시',n:2,st:'대기'},
+    {id:'x2',r:'r14',why:'부적절한 표현',n:1,st:'대기'},
+    {id:'x3',r:'r12',why:'광고성',n:1,st:'대기'}
+  ]
+};
+const MEMBER_SEED_REVIEWS = [
+  {id:'m1',p:'p6',t:'소풍 전날 설레서 잠 못 자는 사람. 도시락 메뉴를 세 번 바꿈.',a:['20대'],m:['상큼발랄한','순수한'],rec:41,ago:19},
+  {id:'m2',p:'p11',t:'이름도 모르는데 같이 있으면 편한 사람. 대화의 절반은 침묵이고 그게 좋음.',a:['30대'],m:['차분한','신비로운'],rec:87,ago:9}
+];
+
+/* =====================================================================
+   상태
+   ===================================================================== */
+let D, S;
+const clone = o => JSON.parse(JSON.stringify(o));
+function fresh(){
+  D = clone(SEED);
+  S = {
+    stack:[{n:'home',p:{}}], homeTab:'feed', feedN:10, sort:'rec', perfPage:{},
+    me:null, loggedIn:false, recs:new Set(), reported:new Set(),
+    sheet:null, modal:null, pending:null, toast:null,
+    draft:null, admin:false, admTab:'reviews', trail:[], scen:null, scenIdx:0, scenDone:false, seq:1, qIdx:-1
+  };
+}
+fresh();
+
+/* ---------- 조회 도우미 ---------- */
+const live = () => D.reviews.filter(r => !r.del);
+const user = id => D.users.find(u => u.id === id);
+const perf = id => D.perfumes.find(p => p.id === id);
+const brand = id => D.brands.find(b => b.id === id);
+const rev = id => D.reviews.find(r => r.id === id);
+const pname = p => brand(p.b).name + ' · ' + p.name;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const byRec = (a,b) => b.rec - a.rec || a.ago - b.ago;
+const byNew = (a,b) => a.ago - b.ago || b.rec - a.rec;
+const ago = d => d === 0 ? '오늘' : d + '일 전';
+const myReview = pid => S.me && S.loggedIn ? live().find(r => r.u === S.me.id && r.p === pid) : null;
+function perfStats(pid){ const rs = live().filter(r => r.p === pid); return {n:rs.length, rec:rs.reduce((s,r)=>s+r.rec,0)}; }
+function eun(name){
+  const ch = name.trim().slice(-1), c = ch.charCodeAt(0);
+  if (c >= 0xAC00 && c <= 0xD7A3) return (c - 0xAC00) % 28 ? '은' : '는';
+  if (/\d/.test(ch)) return '013678'.includes(ch) ? '은' : '는';
+  return '는';
+}
+function cho(str){
+  const L = ['ㄱ','ㄱ','ㄴ','ㄷ','ㄷ','ㄹ','ㅁ','ㅂ','ㅂ','ㅅ','ㅅ','ㅇ','ㅈ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  return L[Math.floor((str.charCodeAt(0) - 0xAC00) / 588)] || '#';
+}
+const cur = () => S.stack[S.stack.length - 1];
+
+/* =====================================================================
+   이벤트 → 시나리오 진행
+   ===================================================================== */
+function ev(name){
+  if (!S.scen || S.scenDone) return;
+  const st = SCEN[S.scen].steps;
+  if (st[S.scenIdx] && st[S.scenIdx].ev === name){
+    S.scenIdx++;
+    if (S.scenIdx >= st.length) S.scenDone = true;
+  }
+}
+
+/* =====================================================================
+   내비게이션
+   ===================================================================== */
+const ZONE = {write:'member', my:'member'};
+const POLSCR = ['terms','privacy','help'];
+function pathOf(n, p){
+  switch(n){
+    case 'home': return S.homeTab === 'brand' ? '/brands' : S.homeTab === 'note' ? '/accords' : '/';
+    case 'search': return '/search'; case 'brand': return '/brands/' + p.id; case 'accord': return '/accords/' + p.id;
+    case 'perfume': return '/perfumes/' + p.id; case 'review': return '/reviews/' + p.id; case 'profile': return '/users/' + p.id;
+    case 'write': return '/write'; case 'my': return '/me'; default: return '/' + n;
+  }
+}
+function labelOf(n, p){
+  switch(n){
+    case 'home': return '홈 · ' + ({feed:'피드',brand:'브랜드',note:'계열'}[S.homeTab]);
+    case 'search': return '검색'; case 'brand': return '브랜드 · ' + brand(p.id).name; case 'accord': return '계열 · ' + p.id;
+    case 'perfume': return '향수 · ' + perf(p.id).name; case 'review': return '시향기 상세'; case 'profile': return '프로필 · ' + (user(p.id)||{}).nick;
+    case 'write': return p.edit ? '시향기 수정' : '시향기 작성'; case 'my': return 'MY';
+    case 'terms': return '이용약관'; case 'privacy': return '개인정보처리방침'; case 'help': return '도움말';
+  }
+  return n;
+}
+function logTrail(){
+  const c = cur();
+  const z = ZONE[c.n] === 'member' ? 'm' : '';
+  S.trail.unshift({l:labelOf(c.n, c.p), p:pathOf(c.n, c.p), z});
+  S.trail = S.trail.slice(0, 14);
+}
+function go(n, p, opt){
+  opt = opt || {};
+  if (opt.replace) S.stack.pop();
+  S.stack.push({n, p: p || {}});
+  S.modal = null; S.sheet = null;
+  logTrail(); ev('screen:' + n);
+  render({top:true});
+}
+function back(){
+  if (S.stack.length > 1){ const wasPol = POLSCR.includes(cur().n); S.stack.pop(); if (!wasPol){ S.modal = null; S.sheet = null; } logTrail(); render({top:true}); }
+}
+function toastMsg(t){
+  S.toast = t; render({keep:true});
+  clearTimeout(toastMsg.t);
+  toastMsg.t = setTimeout(() => { S.toast = null; const el = document.querySelector('.toast'); if (el) el.remove(); }, 2300);
+}
+
+/* ---------- 로그인 게이트 ---------- */
+function needLogin(pending){
+  S.pending = pending; S.sheet = 'login'; ev('sheet:login'); render({keep:true});
+}
+function doLogin(){
+  if (!S.me || S.me.withdrawn){
+    const nicks = ['설렌피오니','느긋한자스민','몽글몽글머스크','새침한시더우드','포근한바닐라'];
+    const mid = 'me' + (S.seq++);
+    S.me = {id:mid, nick: nicks[Math.floor(Math.random() * nicks.length)]};
+    D.users.push(S.me);
+    MEMBER_SEED_REVIEWS.forEach(m => D.reviews.push(Object.assign(clone(m), {id: mid + m.id, u: mid})));
+  }
+  S.loggedIn = true; S.sheet = null;
+  ev('login');
+  const pd = S.pending; S.pending = null;
+  if (!pd){ render({keep:true}); return; }
+  if (pd.t === 'write') startWrite(pd.perfumeId, true);
+  else if (pd.t === 'rec'){ toggleRec(pd.id, true); }
+  else if (pd.t === 'my'){ go('my', {}, {replace: cur().n === 'my'}); }
+}
+function logout(){
+  S.loggedIn = false; S.recs = new Set(); S.draft = null;
+  go('home', {}); toastMsg('로그아웃했어요');
+}
+function toggleRec(id, afterLogin){
+  if (!S.loggedIn){ needLogin({t:'rec', id}); return; }
+  const r = rev(id);
+  if (S.recs.has(id)){ S.recs.delete(id); r.rec--; ev('unrecommended'); render({keep:true}); }
+  else {
+    S.recs.add(id); r.rec++; ev('recommended'); render({keep:true});
+    if (afterLogin) toastMsg('로그인 완료! 같은 화면으로 돌아와 추천이 반영됐어요');
+  }
+}
+
+/* ---------- 쓰기 ---------- */
+function startWrite(pid, afterLogin){
+  if (!S.loggedIn){ needLogin({t:'write', perfumeId: pid || null}); return; }
+  if (pid && myReview(pid)){ S.modal = {k:'already', pid}; S.sheet = null; render({keep:true}); return; }
+  if (!S.draft || S.draft.edit || S.draft.perfumeId !== (pid || null)) S.draft = {perfumeId: pid || null, text:'', ages:[], moods:[], q:null, edit:null};
+  go('write', {perfumeId: pid || null}, {replace: cur().n === 'write'});
+  if (afterLogin) toastMsg('로그인 완료! 향수가 채워진 빈 작성 화면이에요');
+}
+function startEdit(id){
+  const r = rev(id);
+  S.draft = {perfumeId:r.p, text:r.t, ages:[...r.a], moods:[...r.m], q:null, edit:id};
+  go('write', {perfumeId:r.p, edit:id});
+}
+function missing(){
+  const d = S.draft, m = [];
+  if (!d.perfumeId) m.push(['향수','wchip']);
+  if (!d.text.trim()) m.push(['소개 글','ta']);
+  if (!d.ages.length) m.push(['나이대','tq-age']);
+  if (!d.moods.length) m.push(['성격','tq-mood']);
+  return m;
+}
+function submit(){
+  const d = S.draft, miss = missing();
+  if (miss.length){
+    toastMsg('부족한 항목: ' + miss.map(x => x[0]).join(' · '));
+    const el = document.getElementById(miss[0][1]);
+    if (el){ el.scrollIntoView({block:'center'}); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+    return;
+  }
+  if (d.edit){
+    const r = rev(d.edit); r.t = d.text.trim(); r.a = [...d.ages]; r.m = [...d.moods];
+    S.draft = null; go('review', {id:r.id}, {replace:true}); toastMsg('수정했어요'); return;
+  }
+  const id = 'n' + (S.seq++);
+  D.reviews.push({id, p:d.perfumeId, u:S.me.id, t:d.text.trim(), a:[...d.ages], m:[...d.moods], rec:0, ago:0});
+  S.draft = null; S.feedN = 10; ev('submit');
+  go('review', {id}, {replace:true});
+  toastMsg('등록됐어요! 피드·향수 상세에 바로 노출돼요');
+}
+function deleteReview(id, by, memo){
+  const r = rev(id); r.del = {by, memo: memo || '', at: '방금'};
+}
+
+/* =====================================================================
+   렌더 — 컴포넌트
+   ===================================================================== */
+const hintKey = () => (S.scen && !S.scenDone) ? SCEN[S.scen].steps[S.scenIdx].hint : '';
+const H = k => ` data-hint="${k}"`;
+
+function card(r, opt){
+  opt = opt || {};
+  const p = perf(r.p), u = user(r.u);
+  return `<button class="card" data-go="review:${r.id}"${H(opt.hint || 'card')}>
+    <div class="top">${esc(brand(p.b).name)} <span>· ${esc(p.name)}</span></div>
+    <hr><div class="q">“${esc(r.t)}”</div>
+    <div class="tgl">${esc(r.a[0])} · ${esc(r.m[0])}</div>
+    <div class="ft"><span>${esc(u.nick)}${S.loggedIn && r.u === S.me.id ? '<span class="mine-badge">내 글</span>' : ''}</span><span class="h">♥ ${r.rec}</span></div>
+  </button>`;
+}
+function hdr(title, opt){
+  opt = opt || {};
+  const canBack = S.stack.length > 1;
+  return `<div class="hdr"><div class="l">${canBack ? '<button class="ic" data-act="back" aria-label="뒤로">←</button>' : ''}<span class="${opt.brand ? 'brand' : ''}">${esc(title)}</span></div>
+    <div>${opt.right || ''}${opt.noSearch ? '' : '<button class="ic" data-go="search:" aria-label="검색">🔍</button>'}</div></div>`;
+}
+function tbar(on){
+  return `<div class="tbar">
+    <button class="${on === 'home' ? 'on' : ''}" data-act="tabhome"${H('tabhome')}>홈</button>
+    <button class="w" data-act="write:"${H('tabwrite')}>✍ 쓰기</button>
+    <button class="${on === 'my' ? 'on' : ''}" data-act="my"${H('tabmy')}>MY</button>
+  </div>`;
+}
+function writeSticky(pid){
+  const p = perf(pid), mine = myReview(pid);
+  return `<div class="sticky"><button class="cta" data-act="write:${pid}"${H('write')}>${mine ? '이미 소개했어요 · 내 글 보기' : '✍ ' + esc(p.name) + ' 시향기 쓰기'}</button></div>`;
+}
+
+/* ---------- 화면들 ---------- */
+const V = {};
+
+V.home = () => {
+  const t = S.homeTab;
+  let body = '';
+  if (t === 'feed'){
+    const all = live().sort(byRec), shown = all.slice(0, S.feedN);
+    body = `<div class="hint" style="padding-top:12px">추천순 · 시향기 ${all.length}개</div>` + shown.map(r => card(r)).join('') +
+      (all.length > S.feedN ? `<button class="more" data-act="more">더보기 (${all.length - S.feedN}개 남음)</button>` : '<div class="empty">여기까지가 전부예요 🙂</div>');
+  } else if (t === 'brand'){
+    const bs = [...D.brands].sort((a,b) => a.name.localeCompare(b.name,'ko')); let last = '';
+    body = bs.map(b => {
+      const c = cho(b.name), head = c !== last ? `<div class="sec">${c}</div>` : ''; last = c;
+      const n = D.perfumes.filter(p => p.b === b.id).length;
+      return head + `<button class="row" data-go="brand:${b.id}"${H('brand')}><span class="t">${esc(b.name)} <span class="s">${esc(b.en)}</span></span><span class="s">향수 ${n} ›</span></button>`;
+    }).join('');
+  } else {
+    body = `<div class="tiles">${D.accords.map(a => `<button class="tile" data-go="accord:${a}">${a}<span class="s">향수 ${D.perfumes.filter(p => p.acc.includes(a)).length}</span></button>`).join('')}</div>`;
+  }
+  return {
+    head: hdr('perfumeishuman', {brand:true}) +
+      `<div class="tabs"><button class="tab ${t==='feed'?'on':''}" data-act="tab:feed">피드</button><button class="tab ${t==='brand'?'on':''}" data-act="tab:brand"${H('tabbrand')}>브랜드로 찾기</button><button class="tab ${t==='note'?'on':''}" data-act="tab:note">계열로 찾기</button></div>`,
+    body, foot: tbar('home')
+  };
+};
+
+V.search = () => ({
+  head: hdr('검색', {noSearch:true}),
+  body: `<input class="sin" id="q" placeholder="🔍 향수·브랜드 검색" autocomplete="off" value="${esc(S.q || '')}"><div id="qres">${searchRes(S.q || '')}</div>`,
+  foot: ''
+});
+function searchRes(q){
+  q = q.trim();
+  const rows = ps => ps.map(p => { const s = perfStats(p.id); return `<button class="row" data-go="perfume:${p.id}"${H('perfume')}><span class="t">${esc(p.name)} <span class="s">${esc(brand(p.b).name)}</span></span><span class="s">시향기 ${s.n}</span></button>`; }).join('');
+  if (!q){
+    const top = [...D.perfumes].sort((a,b) => perfStats(b.id).rec - perfStats(a.id).rec).slice(0, 5);
+    return `<div class="sec">입력 전 — 인기 향수</div>` + rows(top);
+  }
+  const lq = q.toLowerCase();
+  const bs = D.brands.filter(b => b.name.includes(q) || b.en.toLowerCase().includes(lq));
+  const ps = D.perfumes.filter(p => p.name.includes(q) || brand(p.b).name.includes(q) || brand(p.b).en.toLowerCase().includes(lq));
+  if (!bs.length && !ps.length){
+    const top = [...D.perfumes].sort((a,b) => perfStats(b.id).rec - perfStats(a.id).rec).slice(0, 3);
+    return `<div class="empty">“${esc(q)}”에 맞는 결과가 없어요.<br>대신 인기 향수를 보여드릴게요.</div>` + rows(top);
+  }
+  return (bs.length ? `<div class="sec">브랜드 <span class="n">${bs.length}</span></div>` + bs.map(b => `<button class="row" data-go="brand:${b.id}"><span class="t">${esc(b.name)}</span><span class="s">›</span></button>`).join('') : '') +
+         (ps.length ? `<div class="sec">향수 <span class="n">${ps.length}</span></div>` + rows(ps) : '');
+}
+
+function perfList(ps, hint){
+  const arr = ps.map(p => ({p, s: perfStats(p.id)})).sort((a,b) => b.s.n - a.s.n || b.s.rec - a.s.rec);
+  return arr.map(({p,s}) => `<button class="row" data-go="perfume:${p.id}"${H(hint || 'perfume')}><span class="t">${esc(p.name)}<br><span class="s">${esc(brand(p.b).name)} · ${p.acc.join('·')}</span></span><span class="s">시향기 ${s.n} · ♥ ${s.rec}</span></button>`).join('');
+}
+V.brand = p => { const b = brand(p.id); return {
+  head: hdr(b.name), foot: tbar(''),
+  body: `<div class="meta">${esc(b.en)} · 시향기 수 → 총 추천 수 순</div>` + perfList(D.perfumes.filter(x => x.b === b.id))
+};};
+V.accord = p => ({
+  head: hdr(p.id + ' 계열'), foot: tbar(''),
+  body: `<div class="meta">시향기 수 → 총 추천 수 순</div>` + perfList(D.perfumes.filter(x => x.acc.includes(p.id)))
+});
+
+V.perfume = p => {
+  const pf = perf(p.id), b = brand(pf.b), st = perfStats(pf.id);
+  const sortBy = S.perfPage[pf.id] || 'rec';
+  const rs = live().filter(r => r.p === pf.id).sort(sortBy === 'rec' ? byRec : byNew);
+  return {
+    head: hdr(b.name),
+    body: `<div class="pcard"><div class="b">${esc(b.name)}</div><div class="n">${esc(pf.name)}</div>
+        <div class="chips">${pf.acc.map(a => `<button class="chip" data-go="accord:${a}">${a}</button>`).join('')}</div>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">${esc(pf.note)}</div></div>
+      <div class="meta" style="text-align:center">시향기 ${st.n} · 총 ♥ ${st.rec}</div>
+      <div class="sorts"><button class="${sortBy==='rec'?'on':''}" data-act="psort:${pf.id}:rec">추천순</button><button class="${sortBy==='new'?'on':''}" data-act="psort:${pf.id}:new">최신순</button></div>
+      ${rs.length ? rs.map(r => card(r)).join('') : '<div class="empty">아직 이 향수를 사람으로 소개한 글이 없어요.<br>첫 번째 소개자가 되어 보세요!</div>'}
+      <div class="rights">이미지 없이 텍스트 카드로 표시됩니다 (ADR 0009 폴백).<button data-go="help:">이미지·콘텐츠 권리 침해 신고 안내 ›</button></div>`,
+    foot: writeSticky(pf.id) + tbar('')
+  };
+};
+
+V.review = p => {
+  const r = rev(p.id);
+  if (!r || r.del) return {head: hdr('시향기'), body:'<div class="empty">삭제되었거나 없는 시향기예요. (소프트 삭제분은 404)</div>', foot: tbar('')};
+  const pf = perf(r.p), b = brand(pf.b), u = user(r.u);
+  const others = live().filter(x => x.p === r.p && x.id !== r.id).sort(byRec);
+  const on = S.recs.has(r.id);
+  const author = u.withdrawn ? `<span>${esc(u.nick)}</span> <span style="font-size:11px">(탈퇴 회원)</span>` : `<button class="link"${H('nick')} data-go="profile:${u.id}">${esc(u.nick)}</button>`;
+  return {
+    head: hdr('시향기'),
+    body: `<div class="pcard" style="padding:12px"><button class="link" data-go="perfume:${pf.id}" style="font-size:15px">${esc(b.name)} · ${esc(pf.name)} ›</button></div>
+      <div class="big">“${esc(r.t)}”</div>
+      <div class="meta">${author} · ${ago(r.ago)}${S.loggedIn && r.u === S.me.id ? '<span class="mine-badge">내 글</span>' : ''}</div>
+      <div class="sec">이 사람의 프로필</div>
+      <div class="ptab"><div><span class="k">나이</span><span>${r.a.join(' · ')}</span></div><div><span class="k">성격</span><span>${r.m.join(' · ')}</span></div></div>
+      <button class="rec ${on?'on':''}" data-act="rec:${r.id}"${H('rec')}>${on ? '♥ 추천했어요' : '♡ 추천'} <span class="c">${r.rec}</span></button>
+      <button class="report" data-act="report:${r.id}">신고</button>
+      <div class="sec">이 향수의 다른 페르소나 <span class="n">${others.length}</span></div>
+      ${others.length ? others.map(x => card(x, {hint:'other'})).join('') : '<div class="empty">아직 이 향수의 다른 글이 없어요.</div>'}
+      <div style="height:14px"></div>`,
+    foot: tbar('')
+  };
+};
+
+V.profile = p => {
+  const u = user(p.id);
+  if (!u || u.withdrawn) return {head: hdr('프로필'), body:'<div class="empty">탈퇴한 회원의 프로필은 열 수 없어요.</div>', foot: tbar('')};
+  const rs = live().filter(r => r.u === u.id).sort(byNew);
+  return {
+    head: hdr('프로필'),
+    body: `<div class="nick">${esc(u.nick)}</div>
+      <div class="stat"><span>소개한 사람</span><span class="v">${rs.length}</span></div>
+      <div class="stat"><span>받은 추천</span><span class="v">♥ ${rs.reduce((s,r)=>s+r.rec,0)}</span></div>
+      <div class="sec">${esc(u.nick)}님이 소개한 사람들 <span class="n">${rs.length}</span></div>` + rs.map(r => card(r, {hint:'pcard'})).join(''),
+    foot: tbar('')
+  };
+};
+
+V.write = p => {
+  const d = S.draft;
+  if (!d) return V.home();
+  const pf = d.perfumeId ? perf(d.perfumeId) : null;
+  const chipHtml = pf
+    ? `<div class="wchip" id="wchip"><span>▢ ${esc(pname(pf))}</span>${d.edit ? '' : '<button class="mini" data-act="chgperf">변경</button>'}</div>`
+    : `<div id="wchip"><input class="sin" id="wq" placeholder="🔍 어떤 향수를 소개할까요?" autocomplete="off"><div class="sres" id="wres">${wRes('')}</div></div>`;
+  const ready = pf ? `
+    <div class="guide">ⓘ 실제 인물 비방·허위 정보는 삭제됩니다 · <button class="link" data-go="help:" style="font-size:11.5px">커뮤니티 가이드</button></div>
+    <div class="wh">이 향수가 사람이라면,<br>어떤 사람인지 소개해 주세요</div>
+    <div class="ta" id="ta"><textarea id="wtext" maxlength="100" placeholder="${esc(PLACEHOLDERS[0])}">${esc(d.text)}</textarea><span class="cnt" id="wcnt">${d.text.length}/100</span></div>
+    <button class="qbtn" data-act="qcard"${H('qcard')}>🃏 질문 카드</button>
+    ${d.q ? `<div class="bubble">🃏 “${esc(d.q)}”</div>` : ''}
+    <div class="tagq" id="tq-age">몇 살쯤일까요? <span>· 1~3개</span></div>
+    <div class="tgrid">${AGES.map(a => `<button class="tg ${d.ages.includes(a)?'on':''}" data-act="age:${a}">${a}</button>`).join('')}</div>
+    <div class="tagq" id="tq-mood">어떤 분위기의 사람인가요? <span>· 1~3개</span></div>
+    <div class="tgrid">${MOODS.map(m => `<button class="tg ${d.moods.includes(m)?'on':''}" data-act="mood:${m}">${m}</button>`).join('')}</div>
+    <div style="height:20px"></div>` : '';
+  return {
+    head: `<div class="hdr"><div class="l"><button class="ic" data-act="closewrite" aria-label="닫기">✕</button><span>${d.edit ? '시향기 수정' : '시향기 쓰기'}</span></div><span class="save" id="wsave">✓ 임시저장됨</span></div>`,
+    body: chipHtml + ready,
+    foot: pf ? `<div class="sticky"><button class="cta ${missing().length ? 'off' : ''}" id="wsubmit" data-act="submit"${H('submit')}>${d.edit ? '수정 완료' : '내가 아는 ' + esc(pf.name) + eun(pf.name) + ' 이래요'}</button></div>` : ''
+  };
+};
+function wRes(q){
+  q = q.trim().toLowerCase();
+  const ps = D.perfumes.filter(p => !q || p.name.includes(q) || brand(p.b).name.includes(q) || brand(p.b).en.toLowerCase().includes(q)).slice(0, 8);
+  return ps.map(p => { const mine = myReview(p.id); return `<button class="row" data-act="pick:${p.id}" style="padding-left:4px;padding-right:4px"><span class="t">${esc(p.name)} <span class="s">${esc(brand(p.b).name)}</span></span><span class="s">${mine ? '이미 소개함' : '선택'}</span></button>`; }).join('') || '<div class="empty">검색 결과가 없어요</div>';
+}
+
+V.my = () => {
+  if (!S.loggedIn){
+    return {
+      head: hdr('MY'),
+      body: `<div class="empty" style="margin-top:60px">로그인하면 내가 소개한 향수 사람들과<br>받은 추천 수를 모아볼 수 있어요.</div>
+        <div style="padding:0 16px"><button class="cta" data-act="needmy"${H('social')}>로그인</button></div>
+        <div class="linkrow"><button class="link" data-go="terms:">이용약관</button><button class="link" data-go="privacy:">개인정보처리방침</button><button class="link" data-go="help:">도움말</button></div>`,
+      foot: tbar('my')
+    };
+  }
+  const rs = live().filter(r => r.u === S.me.id).sort(byNew), total = rs.reduce((s,r) => s + r.rec, 0);
+  return {
+    head: hdr('MY'),
+    body: `<div class="nick">${esc(S.me.nick)} <button class="mini" data-act="nickedit">✎ 변경</button></div>
+      <div class="stat"><span>받은 추천</span><span class="v">♥ ${total}</span></div>
+      <div class="sec">내가 소개한 사람들 <span class="n">${rs.length}</span></div>
+      ${rs.length ? rs.map(r => `<div>${card(r, {hint:'mycard'})}<div class="acts" style="margin:-4px 16px 4px"><button class="mini" data-act="edit:${r.id}">수정</button><button class="mini" data-act="del:${r.id}"${H('del')}>삭제</button></div></div>`).join('') : '<div class="empty">아직 소개한 향수가 없어요. 첫 시향기를 써 보세요!</div>'}
+      <div class="rights" style="margin-top:20px"><div class="linkrow" style="padding:0 0 10px"><button class="link" data-go="terms:">이용약관</button><button class="link" data-go="privacy:">개인정보처리방침</button><button class="link" data-go="help:">도움말</button></div>
+        <div style="display:flex;gap:10px;justify-content:center"><button class="mini" data-act="logout">로그아웃</button><button class="mini" data-act="withdraw"${H('withdraw')}>회원 탈퇴</button></div></div>`,
+    foot: tbar('my')
+  };
+};
+
+const POLICY = {
+  terms:['이용약관','시연용 요약',[['제1조 (목적)','향수를 사람에 비유한 시향기를 작성·공유하는 서비스의 이용 조건을 정합니다.'],['제7~10조 (콘텐츠)','시향기의 권리는 작성자에게 있으며 서비스 내 노출을 허락합니다. 타인 비방·허위 정보는 삭제될 수 있습니다.'],['약관 개정 공지','이메일을 수집하지 않으므로 개정 사항은 서비스 내 게시로 공지합니다.']]],
+  privacy:['개인정보처리방침','시연용 요약',[['수집 항목','소셜 로그인 공급자 구분 + 공급자 회원번호만. 이메일·프로필 이미지·공급자 닉네임은 저장하지 않습니다 (ADR 0010).'],['닉네임','서비스가 자동 생성합니다.'],['회원 탈퇴','소셜 식별자·닉네임은 즉시 파기하고, 시향기와 추천은 익명(user_NNNNNN)으로 보존합니다 (ADR 0008).'],['신고자 정보','신고자 IP는 저장하지 않습니다.']]],
+  help:['도움말 · 커뮤니티 가이드','시연용 요약',[['어떻게 쓰나요?','향수를 골라 “이 향수가 사람이라면?”을 100자 이내로 소개하고, 나이대·성격 태그를 고르세요. 별점은 없고 추천만 있어요.'],['커뮤니티 가이드','실제 인물을 비방하거나 특정할 수 있는 내용, 광고, 허위 정보는 삭제됩니다.'],['권리 침해 신고','향수 이미지 등 권리 침해는 신고 접수 즉시 비공개 처리합니다 (ADR 0009).']]]
+};
+['terms','privacy','help'].forEach(k => V[k] = () => {
+  const [t, s, secs] = POLICY[k];
+  return {head: hdr(t, {noSearch:true}), body: `<div class="policy"><i>${s}</i>${secs.map(([h,b]) => `<h4>${h}</h4><div>${b}</div>`).join('')}</div>`, foot: ''};
+});
+
+/* ---------- 시트 · 모달 ---------- */
+function sheetHtml(){
+  if (S.sheet === 'login'){
+    const why = !S.pending ? '' : S.pending.t === 'write' ? '시향기를 쓰려면 로그인이 필요해요' : S.pending.t === 'rec' ? '추천하려면 로그인이 필요해요 (1인 1추천)' : '로그인이 필요해요';
+    return `<div class="scrim bot" data-act="closesheet"><div class="sheet">
+      <div class="grab"></div><h3>로그인</h3><div class="why">${why}<br>읽는 건 로그인 없이 계속 할 수 있어요</div>
+      <button class="soc" data-act="login:kakao"${H('social')}>카카오로 계속하기</button>
+      <button class="soc" data-act="login:naver">네이버로 계속하기</button>
+      <button class="soc" data-act="login:google">구글로 계속하기</button>
+      <div class="fine">계속하면 <button class="link" data-go="terms:" style="font-size:11px">이용약관</button> 및 <button class="link" data-go="privacy:" style="font-size:11px">개인정보처리방침</button>에 동의하는 것으로 봅니다.<br><b>수집: 공급자 회원번호뿐</b> · 탈퇴 시 글은 익명으로 남습니다.</div>
+    </div></div>`;
+  }
+  return '';
+}
+function modalHtml(){
+  const m = S.modal; if (!m) return '';
+  if (m.k === 'already'){
+    const mine = myReview(m.pid);
+    return `<div class="scrim mid" data-act="closemodal"><div class="modal"><h3>이미 소개했어요</h3>
+      <p>${esc(perf(m.pid).name)}에는 이미 내 시향기가 있어요.<br>한 향수에는 한 사람이 1개만 쓸 수 있어요 (ADR 0023).</p>
+      <div class="brow"><button data-act="closemodal">닫기</button><button class="pr" data-go="review:${mine ? mine.id : ''}">내 글 보기</button></div></div></div>`;
+  }
+  if (m.k === 'del')
+    return `<div class="scrim mid" data-act="closemodal"><div class="modal"><h3>이 시향기를 삭제할까요?</h3>
+      <p>삭제하면 목록·피드·검색에서 사라져요.<br>(30일간 보관 후 완전 삭제 — ADR 0011)</p>
+      <div class="brow"><button data-act="closemodal">취소</button><button class="dg" data-act="confirmdel:${m.id}">삭제</button></div></div></div>`;
+  if (m.k === 'withdraw')
+    return `<div class="scrim mid" data-act="closemodal"><div class="modal"><h3>정말 탈퇴할까요?</h3>
+      <ul><li>소셜 식별자·닉네임은 <b>즉시 파기</b>돼요.</li><li>내가 쓴 시향기와 추천은 <b>익명으로 남아요</b>.</li><li>작성자는 <b>user_NNNNNN</b>으로 표시돼요.</li><li><b>되돌릴 수 없어요.</b></li></ul>
+      <div class="brow"><button data-act="closemodal">취소</button><button class="dg"${H('confirm')} data-act="confirmwithdraw">탈퇴하기</button></div></div></div>`;
+  return '';
+}
+
+/* =====================================================================
+   관리자 화면
+   ===================================================================== */
+function adminHtml(){
+  const T = S.admTab;
+  let body = '';
+  if (T === 'reviews'){
+    body = `<h3>시향기 관리</h3><p class="sub">전체 목록 · 삭제는 소프트 삭제 + 처리 이력(주체·사유)을 남깁니다 (ADR 0011). 관리자 보관 1년.</p>
+      <table><thead><tr><th>향수</th><th>소개 글</th><th>작성자</th><th>♥</th><th>상태</th></tr></thead><tbody>` +
+      [...D.reviews].sort(byNew).map(r => `<tr class="${r.del?'del':''}"><td>${esc(perf(r.p).name)}</td><td>${esc(r.t.slice(0,34))}…</td><td>${esc(user(r.u).nick)}</td><td>${r.rec}</td><td>${r.del ? `<span class="badge">삭제됨 · ${r.del.by}</span>${r.del.memo ? ' ' + esc(r.del.memo) : ''}` : `<button class="mini" data-act="admdel:${r.id}">삭제</button>`}</td></tr>`).join('') + '</tbody></table>';
+  } else if (T === 'catalog'){
+    body = `<h3>향수·브랜드 관리</h3><p class="sub">초기 시딩 도구. 이미지 원본 출처 URL 필수 (ADR 0009) — 이 데모에는 이미지가 없습니다.</p>
+      <div class="frm"><b style="font-size:12.5px">향수 등록</b><input placeholder="브랜드"><input placeholder="향수명"><input placeholder="이미지 출처 URL (공식 사이트 팩샷)"><div class="warn">연출컷·모델컷·워터마크 이미지는 등록할 수 없어요</div><button class="btn-s gold" data-act="admsave">등록(시연)</button></div>
+      <table><thead><tr><th>브랜드</th><th>향수</th><th>계열</th><th>시향기</th></tr></thead><tbody>${D.perfumes.map(p => `<tr><td>${esc(brand(p.b).name)}</td><td>${esc(p.name)}</td><td>${p.acc.join(' · ')}</td><td>${perfStats(p.id).n}</td></tr>`).join('')}</tbody></table>`;
+  } else {
+    body = `<h3>신고 관리</h3><p class="sub">신고자 IP는 저장하지 않으며, 최종 방어선은 관리자 수동 처리입니다 (ADR 0010).</p>
+      <table><thead><tr><th>대상</th><th>사유</th><th>누적</th><th>상태</th></tr></thead><tbody>` +
+      D.reports.map(x => { const r = rev(x.r); return `<tr><td>${esc(perf(r.p).name)} — ${esc(r.t.slice(0,22))}…</td><td>${esc(x.why)}</td><td>${x.n}</td><td>${x.st === '대기' ? `<button class="mini" data-act="rpdel:${x.id}">삭제</button> <button class="mini" data-act="rpign:${x.id}">무시</button>` : `<span class="badge">${x.st}</span>`}</td></tr>`; }).join('') + '</tbody></table>';
+  }
+  return `<div class="adm"><nav>
+    <button class="${T==='reviews'?'on':''}" data-act="admtab:reviews">시향기 관리</button>
+    <button class="${T==='catalog'?'on':''}" data-act="admtab:catalog">향수·브랜드</button>
+    <button class="${T==='reports'?'on':''}" data-act="admtab:reports">신고 관리 <span class="badge">${D.reports.filter(x=>x.st==='대기').length}</span></button>
+    <button data-act="admexit" style="margin-top:20px;color:var(--accent)">← 사용자 화면</button></nav><main>${body}</main></div>`;
+}
+
+/* =====================================================================
+   시나리오
+   ===================================================================== */
+const SCEN = {
+  F1:{cls:'', title:'읽기 루프', desc:'로그인 없이 시향기에서 시향기로 ↺', done:'모든 길이 다시 시향기 상세로 돌아왔어요 — 체류를 만드는 읽기 루프.',
+    setup(){ go('home'); },
+    steps:[
+      {t:'홈 피드에서 카드를 탭', hint:'card', ev:'screen:review', note:'피드는 추천순, 100자 전문이 카드에 그대로'},
+      {t:'“다른 페르소나” 중 하나를 탭', hint:'other', ev:'screen:review', note:'같은 향수의 다른 사람 — 아래로 스크롤'},
+      {t:'작성자 닉네임을 탭', hint:'nick', ev:'screen:profile', note:'프로필: 소개한 사람 수 · 받은 추천'},
+      {t:'그 사람의 다른 시향기를 탭', hint:'pcard', ev:'screen:review', note:'다시 시향기 상세로 ↺'}
+    ]},
+  F2:{cls:'', title:'탐색 → 선택', desc:'입문자의 길: 브랜드로 찾아 시향기까지', done:'브랜드 → 향수 → 시향기. 입문자도 길을 잃지 않아요.',
+    setup(){ go('home'); },
+    steps:[
+      {t:'“브랜드로 찾기” 탭', hint:'tabbrand', ev:'tab:brand', note:'가나다 목록. 계열 탭도 같은 구조'},
+      {t:'브랜드를 선택', hint:'brand', ev:'screen:brand'},
+      {t:'향수를 선택', hint:'perfume', ev:'screen:perfume', note:'사진 없이도 동작하는 텍스트 카드 폴백'},
+      {t:'시향기 하나를 열어 읽기', hint:'card', ev:'screen:review'}
+    ]},
+  F3:{cls:'rose', title:'쓰기 전환', desc:'게스트가 향수 상세에서 시향기를 쓰기까지', done:'등록 즉시 상세·피드에 노출. 홈으로 가서 내 글이 올라왔는지 확인해 보세요.',
+    setup(){ go('perfume', {id:'p10'}); },
+    steps:[
+      {t:'“시향기 쓰기” 탭 (게스트)', hint:'write', ev:'sheet:login', note:'누르는 순간 로그인부터 (ADR 0014)'},
+      {t:'소셜 로그인 1탭', hint:'social', ev:'login', note:'수집은 공급자 회원번호뿐 (ADR 0010)'},
+      {t:'질문 카드를 눌러 영감 얻기', hint:'qcard', ev:'qcard', note:'AI가 아닌 사람이 쓴 고정 문구 풀 — 향수는 채워진 채로'},
+      {t:'글 쓰고 나이대·성격 고른 뒤 등록', hint:'submit', ev:'submit', note:'버튼 문구: “내가 아는 상탈 33은 이래요”'},
+      {t:'홈 탭에서 내 글 확인', hint:'tabhome', ev:'screen:home', note:'피드에 즉시 노출 (추천 0이라 아래쪽)'}
+    ]},
+  F4:{cls:'rose', title:'추천 전환', desc:'추천이 로그인 전환 장치를 겸한다', done:'로그인 후 같은 화면으로 복귀, 추천 자동 반영. 별점 없이 추천만!',
+    setup(){ go('review', {id:'r3'}); },
+    steps:[
+      {t:'“추천” 탭 (게스트)', hint:'rec', ev:'sheet:login', note:'1인 1추천 — 조작 방지'},
+      {t:'소셜 로그인', hint:'social', ev:'login'},
+      {t:'같은 화면으로 복귀 · 추천 반영', hint:'', ev:'recommended', note:'직전 행동이 이어져요'},
+      {t:'다시 눌러 추천 취소 (토글)', hint:'rec', ev:'unrecommended'}
+    ]},
+  F5:{cls:'rose', title:'MY · 삭제 · 탈퇴', desc:'내 글 관리와 회원 탈퇴(익명 보존)', done:'탈퇴해도 글은 user_NNNNNN으로 남아요. 피드에서 확인해 보세요.',
+    setup(){ doLogin(); go('my', {}, {replace:false}); },
+    steps:[
+      {t:'내 시향기를 탭해 상세 보기', hint:'mycard', ev:'screen:review', note:'MY에서 받은 추천 수 확인 가능'},
+      {t:'MY로 돌아가 글 하나 삭제', hint:'del', ev:'delete', note:'소프트 삭제 — 어디에도 안 보임 (ADR 0011)'},
+      {t:'“회원 탈퇴” 탭', hint:'withdraw', ev:'sheet:withdraw', note:'고지: 되돌릴 수 없음 · 글은 익명 보존'},
+      {t:'“탈퇴하기” 확인', hint:'confirm', ev:'withdraw', note:'ADR 0008'}
+    ]}
+};
+function startScen(id){
+  fresh(); S.scen = id; S.scenIdx = 0;
+  S.trail = [];
+  const c = cur(); S.stack = [{n:'home', p:{}}];
+  SCEN[id].setup();
+  renderPanels();
+}
+
+/* =====================================================================
+   렌더
+   ===================================================================== */
+function render(opt){
+  opt = opt || {};
+  const c = cur(), center = document.getElementById('center');
+  center.style.maxWidth = S.admin ? '820px' : '390px';
+  if (S.admin){
+    center.innerHTML = adminHtml();
+  } else {
+    const prevScroll = (center.querySelector('.scroll') || {}).scrollTop || 0;
+    const v = (V[c.n] || V.home)(c.p);
+    center.innerHTML = `<div class="phone" id="phone">${v.head}<div class="scroll" id="scroll">${v.body}</div>${v.foot || ''}${POLSCR.includes(c.n) ? '' : sheetHtml() + modalHtml()}${S.toast ? `<div class="toast">${esc(S.toast)}</div>` : ''}</div>`;
+    const sc = document.getElementById('scroll');
+    if (opt.top) sc.scrollTop = 0; else if (opt.keep) sc.scrollTop = prevScroll;
+    bindDynamic();
+  }
+  renderPanels();
+  applyHint();
+}
+function applyHint(){
+  document.querySelectorAll('.pulse').forEach(e => e.classList.remove('pulse'));
+  const k = hintKey(); if (!k) return;
+  const hits = document.querySelectorAll(`[data-hint="${k}"]`);
+  // 모달·시트 안의 힌트가 있으면 그쪽을 우선
+  const over = [...hits].filter(e => e.closest('.scrim'));
+  (over.length ? over : [...hits].slice(0, 1)).forEach(e => e.classList.add('pulse'));
+}
+function renderPanels(){
+  document.getElementById('miniTools').innerHTML =
+    `<button data-act="reset">↺ 처음부터</button><button data-act="${S.admin ? 'admexit' : 'admenter'}">${S.admin ? '← 사용자 화면' : '관리자 화면 보기'}</button>`;
+}
+
+/* ---------- 동적 입력(포커스 유지용 부분 갱신) ---------- */
+let phTimer;
+function bindDynamic(){
+  const q = document.getElementById('q');
+  if (q){ q.addEventListener('input', () => { S.q = q.value; document.getElementById('qres').innerHTML = searchRes(q.value); applyHint(); }); }
+  const wq = document.getElementById('wq');
+  if (wq) wq.addEventListener('input', () => { document.getElementById('wres').innerHTML = wRes(wq.value); });
+  const wt = document.getElementById('wtext');
+  if (wt){
+    wt.addEventListener('input', () => {
+      S.draft.text = wt.value;
+      document.getElementById('wcnt').textContent = wt.value.length + '/100';
+      document.getElementById('wsubmit').classList.toggle('off', missing().length > 0);
+      const sv = document.getElementById('wsave'); if (sv) sv.textContent = '✓ 임시저장됨';
+    });
+    let i = 0; clearInterval(phTimer);
+    phTimer = setInterval(() => { const t = document.getElementById('wtext'); if (!t) return clearInterval(phTimer); i = (i + 1) % PLACEHOLDERS.length; t.placeholder = PLACEHOLDERS[i]; }, 3500);
+  }
+}
+
+/* =====================================================================
+   클릭 처리 (이벤트 위임)
+   ===================================================================== */
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]');
+  if (g){
+    const [n, arg] = g.dataset.go.split(':');
+    if (n === 'review' && !arg) return;
+    // 약관 링크는 시트·모달을 유지한 채 열기 위해 스택만 쌓는다
+    if ((n === 'terms' || n === 'privacy' || n === 'help')) { S.stack.push({n, p:{}}); logTrail(); ev('screen:' + n); render({top:true}); return; }
+    if (n === 'review' && g.closest('.scrim')) { S.modal = null; }
+    go(n, n === 'search' || n === 'help' ? {} : {id: arg});
+    return;
+  }
+  const a = e.target.closest('[data-act]');
+  if (!a) return;
+  const [act, x, y] = a.dataset.act.split(':');
+  switch(act){
+    case 'back': back(); break;
+    case 'tabhome': S.stack = [{n:'home', p:{}}]; S.homeTab = 'feed'; logTrail(); ev('screen:home'); render({top:true}); break;
+    case 'tab': S.homeTab = x; ev('tab:' + x); logTrail(); render({top:true}); break;
+    case 'more': S.feedN += 10; render({keep:true}); break;
+    case 'psort': S.perfPage[x] = y; render({keep:true}); break;
+    case 'rec': toggleRec(x); break;
+    case 'report':
+      if (S.reported.has(x)) toastMsg('이미 신고했어요 (브라우저 로컬 중복 방지)');
+      else {
+        S.reported.add(x); const ex = D.reports.find(z => z.r === x);
+        if (ex) ex.n++; else D.reports.push({id:'x' + (D.reports.length + 1), r:x, why:'사용자 신고', n:1, st:'대기'});
+        toastMsg('신고가 접수됐어요. 관리자가 확인해요');
+      } break;
+    case 'write': startWrite(x || null); break;
+    case 'my': if (S.loggedIn) { S.stack = [{n:'home', p:{}}]; go('my'); } else { S.stack = [{n:'home', p:{}}]; go('my'); } break;
+    case 'needmy': needLogin({t:'my'}); break;
+    case 'closesheet': if (e.target !== a) break; S.sheet = null; S.pending = null; render({keep:true}); break;
+    case 'closemodal': if (a.tagName !== 'BUTTON' && e.target !== a) break; S.modal = null; render({keep:true}); break;
+    case 'login': doLogin(); break;
+    case 'logout': logout(); break;
+    case 'nickedit': { const v = prompt('새 닉네임 (시연용)', S.me.nick); if (v && v.trim()) { S.me.nick = v.trim().slice(0, 12); render({keep:true}); toastMsg('닉네임을 바꿨어요'); } break; }
+    case 'edit': startEdit(x); break;
+    case 'del': S.modal = {k:'del', id:x}; render({keep:true}); break;
+    case 'confirmdel': deleteReview(x, '본인'); ev('delete'); S.modal = null; render({keep:true}); toastMsg('삭제했어요 · 모든 목록에서 사라졌어요'); break;
+    case 'withdraw': S.modal = {k:'withdraw'}; ev('sheet:withdraw'); render({keep:true}); break;
+    case 'confirmwithdraw': {
+      const n = 'user_' + String(Math.floor(100000 + Math.random() * 900000));
+      S.me.nick = n; S.me.withdrawn = true; S.loggedIn = false; S.recs = new Set(); S.draft = null; S.modal = null;
+      ev('withdraw'); S.stack = [{n:'home', p:{}}]; S.homeTab = 'feed'; logTrail(); render({top:true});
+      toastMsg('탈퇴했어요. 내 글은 ' + n + '(으)로 남아요'); break;
+    }
+    case 'closewrite': S.stack.length > 1 ? back() : go('home'); break;
+    case 'chgperf': S.draft.perfumeId = null; render({keep:true}); break;
+    case 'pick': {
+      if (myReview(x)){ S.modal = {k:'already', pid:x}; render({keep:true}); break; }
+      S.draft.perfumeId = x; render({top:true}); break;
+    }
+    case 'qcard': {
+      let i; do { i = Math.floor(Math.random() * QCARDS.length); } while (i === S.qIdx && QCARDS.length > 1);
+      S.qIdx = i; S.draft.q = QCARDS[i]; ev('qcard'); render({keep:true}); break;
+    }
+    case 'age': case 'mood': {
+      const key = act === 'age' ? 'ages' : 'moods', arr = S.draft[key], i = arr.indexOf(x);
+      if (i >= 0) arr.splice(i, 1);
+      else if (arr.length >= 3) { toastMsg('최대 3개까지 고를 수 있어요'); break; }
+      else arr.push(x);
+      render({keep:true}); break;
+    }
+    case 'submit': submit(); break;
+    case 'scen': startScen(x); break;
+    case 'reset': fresh(); render({top:true}); break;
+    case 'admenter': S.admin = true; logTrail(); render(); break;
+    case 'admexit': S.admin = false; render({top:true}); break;
+    case 'admtab': S.admTab = x; render(); break;
+    case 'admdel': { const memo = prompt('삭제 사유 메모 (처리 이력에 기록)', '커뮤니티 가이드 위반'); if (memo !== null) { deleteReview(x, '관리자', memo); render(); } break; }
+    case 'rpdel': { const z = D.reports.find(r => r.id === x); deleteReview(z.r, '관리자', '신고 처리'); z.st = '삭제 처리'; render(); break; }
+    case 'rpign': D.reports.find(r => r.id === x).st = '무시'; render(); break;
+    case 'admsave': alert('시연용 화면이에요. 실제로는 출처 URL 검증 후 등록됩니다.'); break;
+  }
+});
+// 탭 이동 시 쓰기 도중 이탈하면 임시저장 유지 (draft는 상태에 보관됨)
+
+/* 초기 */
+logTrail();
+render({top:true});
+</script>
+</body>
+</html>
