@@ -14,7 +14,7 @@
 | [0002](./0002-open-reading-login-for-actions.md) | 열람은 비로그인 개방, 작성·추천은 소셜 로그인 필수 | Accepted |
 | [0003](./0003-controlled-vocabulary-tags.md) | 태그·계열은 관리자 지정 통제 어휘 사용 | Accepted |
 | [0004](./0004-single-page-writing-form.md) | 시향기 작성 폼은 한 페이지 스크롤 + 100자 숏폼 | Accepted |
-| [0005](./0005-seo-slug-urls.md) | 콘텐츠 URL에 SEO 슬러그 사용 | Accepted |
+| [0005](./0005-seo-slug-urls.md) | 콘텐츠 URL에 SEO 슬러그 사용 | Accepted (계열 URL은 0019가 변경) |
 | [0006](./0006-tag-vocabulary-and-answer-structure.md) | 시향기 태그 선택지 세트와 응답 구조 확정 | Superseded by 0007 |
 | [0007](./0007-reduce-tag-questions-to-two.md) | 태그 질문 4종 → 2종 축소 (나이대·성격) | Accepted |
 | [0008](./0008-anonymized-retention-on-withdrawal.md) | 회원 탈퇴 시 시향기는 익명 처리 후 보존 | Accepted |
@@ -26,4 +26,9 @@
 | [0014](./0014-login-before-write-entry.md) | 시향기 쓰기 전 로그인 | Accepted |
 | [0015](./0015-accord-final-set.md) | 계열(accord) 최종 세트 11개 확정 | Accepted |
 | [0016](./0016-aggregate-update-and-soft-delete-scope.md) | 집계 컬럼은 애플리케이션 증감 + 주기 보정, 소프트 삭제 제외는 기본 스코프 | Accepted |
-| [0017](./0017-api-design-principles.md) | API 설계 원칙 — REST·세션 쿠키·오프셋 페이지네이션 | Accepted |
+| [0017](./0017-api-design-principles.md) | API 설계 원칙 — REST·세션 쿠키·오프셋 페이지네이션 | Accepted (§5 기본 크기는 0018이 보완) |
+| [0018](./0018-list-page-size.md) | 목록 페이지 크기 — 사용자·관리자 모두 기본 10개 | Accepted |
+| [0019](./0019-accord-naming-unification.md) | 계열의 영문 이름을 accord로 통일 — URL·API·스키마 | Accepted |
+| [0020](./0020-reconsent-on-policy-revision.md) | 약관·처리방침 개정 시 재동의 — 거부하면 탈퇴 안내 | Superseded by 0022 |
+| [0021](./0021-admin-report-id-exception.md) | 관리자 전용 신고 API는 내부 id를 식별자로 쓴다 (0017의 예외) | Accepted |
+| [0022](./0022-defer-reconsent-from-mvp.md) | 약관 개정 시 재동의는 MVP에서 제외, 향후 도입 설계안 보존 | Accepted |

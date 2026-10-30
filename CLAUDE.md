@@ -44,7 +44,7 @@
 
 **6단계가 확정됐고 7단계(API 명세)가 진행 중이다.** 7단계는 §1 설계 원칙(ADR 0017)까지 확정됐다. 다음은 화면 16개 기준 엔드포인트 도출(`docs/07-api-spec.md` §2)이다.
 
-- 산출물: [`docs/06-erd.md`](docs/06-erd.md) — E1~E18 엔티티 반영 확인표(§2) · 이번 단계 신규 결정(§3) · 7단계로 넘기는 미결 사항(§4). ERD 다이어그램 본체는 `docs/erd6.png`(최종본). 중간 산출물(`erd.pdf`~`erd5.png`)은 작업 이력으로 보존
+- 산출물: [`docs/06-erd.md`](docs/06-erd.md) — E1~E18 엔티티 반영 확인표(§2) · 이번 단계 신규 결정(§3) · 7단계로 넘기는 미결 사항(§4). ERD 다이어그램 본체는 `docs/erd.png`(최종본, 중간 산출물은 정리됨 — 이전 버전은 git 이력)
 - 이 단계에서 확정된 것 (2026-09-27 확정)
   1. 집계 컬럼 6종의 위치·이름 — `perfume.post_count`·`total_recommend_count`, `brand.perfume_count`, `accord.perfume_count`, `user.post_count`·`received_recommend_count`
   2. 관리자 조치 로그(E15)는 `type`+`target_id` 폴리모픽 참조로 시향기·향수 등 여러 대상을 한 테이블에 기록

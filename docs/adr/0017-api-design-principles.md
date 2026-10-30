@@ -1,6 +1,6 @@
 # 0017. API 설계 원칙 — REST·세션 쿠키·오프셋 페이지네이션
 
-- Status: **Accepted** (2026-10-03 확정)
+- Status: **Accepted** (2026-10-03 확정) — §5의 기본 페이지 크기는 [0018](./0018-list-page-size.md)이 20 → 10으로 보완
 - 관련 문서: [07-api-spec.md](../07-api-spec.md) §1, [0005-seo-slug-urls.md](./0005-seo-slug-urls.md), [0008-anonymized-retention-on-withdrawal.md](./0008-anonymized-retention-on-withdrawal.md), [0010-minimal-personal-data-collection.md](./0010-minimal-personal-data-collection.md), [0011-soft-delete-reviews.md](./0011-soft-delete-reviews.md), [0012-identifier-formats.md](./0012-identifier-formats.md), [0016-aggregate-update-and-soft-delete-scope.md](./0016-aggregate-update-and-soft-delete-scope.md)
 
 ## Context

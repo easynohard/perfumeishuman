@@ -1,6 +1,6 @@
 # 0015. 계열(accord) 최종 세트 11개 확정
 
-- Status: **Accepted** (2026-10-01 확정)
+- Status: **Accepted** (2026-10-01 확정) — 본문의 `/notes` 표기는 [0019](./0019-accord-naming-unification.md)가 `/accords`로 변경
 - 관련 문서: [0003-controlled-vocabulary-tags.md](./0003-controlled-vocabulary-tags.md), [0005-seo-slug-urls.md](./0005-seo-slug-urls.md), [05-data-model.md](../05-data-model.md) §2.3·§2.6·§3.2 E4, [06-erd.md](../06-erd.md) E4
 
 ## Context

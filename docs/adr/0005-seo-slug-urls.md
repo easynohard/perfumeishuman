@@ -1,6 +1,6 @@
 # 0005. 콘텐츠 URL에 SEO 슬러그 사용
 
-- Status: **Accepted** (2026-08-11 확정)
+- Status: **Accepted** (2026-08-11 확정) — 계열 URL `/notes/:slug`는 [0019](./0019-accord-naming-unification.md)가 `/accords/:slug`로 변경
 - 관련 문서: [03-sitemap-ia.md](../03-sitemap-ia.md) §5-5
 
 ## Context

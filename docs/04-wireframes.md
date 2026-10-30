@@ -5,6 +5,7 @@
 > 개정: 2026-08-16 — 법적 준수 화면 소급 반영. 정책 페이지 3종(§2.10~2.12) 추가, 로그인 바텀시트 동의 고지(§3), MY 탈퇴 확인 모달(§4.2), 향수 상세 이미지 폴백·권리 고지(§2.7), 관리자 이미지 출처 입력(§5.2). 근거: [ADR 0008](./adr/0008-anonymized-retention-on-withdrawal.md) · [ADR 0009](./adr/0009-perfume-image-sourcing-and-takedown.md) · [02-user-stories.md](./02-user-stories.md) Epic F
 > 근거 문서: [02-user-stories.md](./02-user-stories.md) · [03-sitemap-ia.md](./03-sitemap-ia.md) · 관련 ADR: [0006](./adr/0006-tag-vocabulary-and-answer-structure.md)(superseded) · [0007](./adr/0007-reduce-tag-questions-to-two.md) · [0013](./adr/0013-age-tag-multi-select.md) · [0014](./adr/0014-login-before-write-entry.md)
 > 개정: 2026-09-13 — 게스트의 `/write` 진입·입력 허용을 되돌림. "시향기 쓰기"를 누르는 순간 로그인 게이트가 먼저 뜬다 (§1.2·§1.4·§2.7·§3·§4.1 수정). 근거: [ADR 0014](./adr/0014-login-before-write-entry.md)
+> 개정: 2026-10-28 — 계열의 영문 이름을 `accord`로 통일: 화면 URL `/accords` → `/accords`, `/accords/:slug` → `/accords/:slug`. 근거: [ADR 0019](./adr/0019-accord-naming-unification.md) (§2.1·§2.3·§2.6)
 > 화면 요소 옆 괄호는 2단계 스토리·AC 매핑
 
 ---
@@ -119,7 +120,7 @@ UI 문구는 "사람 소개하듯 말하는" 톤으로 통일한다 (1단계 §4
 └──────────────────────────────┘
 ```
 
-- 각 탭은 고유 URL(`/` · `/brands` · `/notes`)을 가진다 — 공유·SEO (3단계 결정 2).
+- 각 탭은 고유 URL(`/` · `/brands` · `/accords`)을 가진다 — 공유·SEO (3단계 결정 2).
 - 첫 화면 = 즉시 읽을거리 (M7). 첫 카드가 FCP 안에 보이는 것이 N5의 대상.
 
 ### 2.2 홈 — 브랜드로 찾기 탭 `/brands` (A2)
@@ -142,7 +143,7 @@ UI 문구는 "사람 소개하듯 말하는" 톤으로 통일한다 (1단계 §4
 └──────────────────────────────┘
 ```
 
-### 2.3 홈 — 계열로 찾기 탭 `/notes` (A3)
+### 2.3 홈 — 계열로 찾기 탭 `/accords` (A3)
 
 ```
 ┌──────────────────────────────┐
@@ -217,7 +218,7 @@ UI 문구는 "사람 소개하듯 말하는" 톤으로 통일한다 (1단계 §4
 └──────────────────────────────┘
 ```
 
-### 2.6 계열 상세 `/notes/:slug` (A3)
+### 2.6 계열 상세 `/accords/:slug` (A3)
 
 브랜드 상세와 **대칭 구조** (3단계 결정 2) — 헤더만 계열명으로 교체.
 

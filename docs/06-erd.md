@@ -3,20 +3,23 @@
 > 프로젝트: **perfumeishuman — "향수가 사람이라면?"**
 > 작성일: 2026-09-27 · 상태: **확정**
 > 근거 문서: [05-data-model.md](./05-data-model.md)
+> 개정: 2026-10-28 — 계열 이름 통일(ADR 0019): 연결 테이블 `note_has_perfume` → `accord_has_perfume`, `accord.note_name` → `accord_name`, `accord.note_slug` → `accord_slug`, 연결 테이블의 FK 컬럼 `note_note_name` → `accord_accord_name`. **`perfume.notes`(향수의 노트 텍스트)는 그대로.** [ADR 0019](./adr/0019-accord-naming-unification.md)
 > 관련 ADR: [0003](./adr/0003-controlled-vocabulary-tags.md) · [0007](./adr/0007-reduce-tag-questions-to-two.md) · [0008](./adr/0008-anonymized-retention-on-withdrawal.md) · [0009](./adr/0009-perfume-image-sourcing-and-takedown.md) · [0010](./adr/0010-minimal-personal-data-collection.md) · [0011](./adr/0011-soft-delete-reviews.md) · [0012](./adr/0012-identifier-formats.md) · [0013](./adr/0013-age-tag-multi-select.md)
 
 ## 0. 읽는 법
 
-ERD 본체는 다이어그램 자체(`erd6.png`)다. 이 문서는 두 가지 역할만 한다.
+ERD 본체는 다이어그램 자체(`erd.png`)다. 이 문서는 두 가지 역할만 한다.
 
 1. 5단계(`05-data-model.md` §3.7)의 엔티티 후보 18개(E1~E18)가 다이어그램에 빠짐없이 반영됐는지 대조한다.
 2. 5단계 §7 "6단계로 넘기는 것"이 남겨둔 미결 사항을 이번 단계에서 어떻게 확정했는지 기록한다.
 
-작업 과정에서 나온 중간 산출물(`erd.pdf` ~ `erd5.png`)은 삭제하지 않고 이력으로 남겨둔다. **최종본은 `erd6.png`다.**
+작업 과정의 중간 산출물은 정리했고(2026-10-28), 최종본만 `erd.png`로 남겼다. 이전 버전은 git 이력에 있다.
 
 ## 1. 다이어그램
 
-![ERD](./erd6.png)
+![ERD](./erd.png)
+
+> 다이어그램은 2026-10-28 계열 이름 통일(ADR 0019)을 반영해 갱신했다.
 
 ## 2. 엔티티 반영 확인표 (E1~E18 ↔ 테이블)
 
@@ -25,8 +28,8 @@ ERD 본체는 다이어그램 자체(`erd6.png`)다. 이 문서는 두 가지 �
 | E1 | 브랜드 | `brand` | 검색용 별칭(`name_search`), 향수 수 집계(`perfume_count`) 포함 |
 | E2 | 향수 | `perfume` | 검색용 별칭(`name_search`), 시향기 수·총 추천 수 집계(`post_count`, `total_recommend_count`) 포함 |
 | E3 | 향수 이미지 | `perfumeimage` | 가공일(`make_date`), 등록 관리자(`adminwho`→`user.id`), 대체 텍스트(`replacetext`) 포함 |
-| E4 | 계열 | `accord` | 향수 수 집계(`perfume_count`) 포함 |
-| E5 | 향수–계열 연결 | `note_has_perfume` | 다대다 연결 테이블 |
+| E4 | 계열 | `accord` | 컬럼 `accord_name`·`accord_slug`(ADR 0019), 향수 수 집계(`perfume_count`) 포함 |
+| E5 | 향수–계열 연결 | `accord_has_perfume` | 다대다 연결 테이블 (FK 컬럼 `accord_accord_name`, `perfume_perfume_id`) |
 | E6 | 사용자 | `user` | 탈퇴 시각(`unregister_date`), 시향기 수·받은 추천 총합 집계(`post_count`, `received_recommend_count`) 포함 |
 | E7 | 동의 이력 | `confirmhistory` | — |
 | E8 | 정책 문서 버전 | `policyversion` | 본문(`content`) TEXT, 시행일·게시일 DATETIME |
