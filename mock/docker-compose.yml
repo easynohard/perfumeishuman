@@ -1,0 +1,10 @@
+services:
+  mock:
+    build:
+      context: ..
+      dockerfile: mock/Dockerfile
+    ports:
+      - "4020:4020"
+    # yaml을 고치고 바로 확인하려면 아래 볼륨을 켜고 `docker compose restart`
+    # volumes:
+    #   - ../docs/07-api-spec.yaml:/app/docs/07-api-spec.yaml:ro

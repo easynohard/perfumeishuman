@@ -1,0 +1,10 @@
+{
+  "name": "perfumeishuman-mock",
+  "private": true,
+  "description": "docs/07-api-spec.yaml 기반 목 서버(Prism) + Swagger UI",
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "@stoplight/prism-cli": "5.14.2",
+    "swagger-ui-dist": "5.17.14"
+  }
+}

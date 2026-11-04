@@ -1,0 +1,3950 @@
+# 7단계 §5 — OpenAPI 명세. 기준: docs/07-api-spec.md §4 (자동 생성 스크립트 산출물이 아니라 이 파일이 원본이다)
+openapi: 3.0.3
+info:
+  title: perfumeishuman API
+  version: 1.0.0-draft
+  contact:
+    name: perfumeishuman 운영
+  description: '향수가 사람이라면? — API 명세. 기준 문서: docs/07-api-spec.md (§4). 필드는 snake_case, 시각은 ISO 8601(+09:00). 소프트 삭제된 시향기는 /admin 외 모든 응답에서 404·제외.
+    쓰기 요청(POST·PATCH·PUT·DELETE)은 CSRF 검증을 거치며 실패 시 403 CSRF_INVALID. 에러 코드 전체는 §4.5.'
+servers:
+- url: /api/v1
+tags:
+- name: catalog
+- name: reviews
+- name: users
+- name: policies
+- name: auth
+- name: me
+- name: write-helpers
+- name: admin
+paths:
+  /reviews:
+    get:
+      summary: 홈 피드 (추천순)
+      tags:
+      - reviews
+      operationId: get_reviews
+      parameters:
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - recommend
+          default: recommend
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageReviewCard'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 홈 피드 (추천순)
+    post:
+      summary: 시향기 등록
+      tags:
+      - reviews
+      operationId: post_reviews
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+      responses:
+        '201':
+          description: 'Location: /api/v1/reviews/{slug}'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+        '400':
+          description: Bad Request — TEXT_REQUIRED, TEXT_TOO_LONG, TAG_REQUIRED, TAG_TOO_MANY, TAG_INVALID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: TEXT_REQUIRED
+                  message: 오류 메시지
+        '404':
+          description: Not Found — PERFUME_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — ALREADY_REVIEWED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: ALREADY_REVIEWED
+                  message: 오류 메시지
+        '429':
+          description: Too Many Requests — RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: RATE_LIMITED
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 시향기 등록
+  /brands:
+    get:
+      summary: 브랜드 전체 목록
+      tags:
+      - catalog
+      operationId: get_brands
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListBrandSummary'
+      security:
+      - {}
+      - sessionCookie: []
+      description: 브랜드 전체 목록
+  /accords:
+    get:
+      summary: 계열 전체 목록
+      tags:
+      - catalog
+      operationId: get_accords
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAccordSummary'
+      security:
+      - {}
+      - sessionCookie: []
+      description: 계열 전체 목록
+  /search:
+    get:
+      summary: 향수·브랜드 통합 검색 (각 상위 5)
+      tags:
+      - catalog
+      operationId: get_search
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 50
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 향수·브랜드 통합 검색 (각 상위 5)
+  /perfumes:
+    get:
+      summary: 향수 목록·검색 (인기순)
+      tags:
+      - catalog
+      operationId: get_perfumes
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - popular
+          default: popular
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePerfumeSummary'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 향수 목록·검색 (인기순)
+  /brands/{slug}:
+    get:
+      summary: 브랜드 상세
+      tags:
+      - catalog
+      operationId: get_brands_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandDetail'
+        '404':
+          description: Not Found — BRAND_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_NOT_FOUND
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 브랜드 상세
+  /brands/{slug}/perfumes:
+    get:
+      summary: 브랜드 소속 향수
+      tags:
+      - catalog
+      operationId: get_brands_slug_perfumes
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePerfumeSummary'
+        '404':
+          description: Not Found — BRAND_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_NOT_FOUND
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 브랜드 소속 향수
+  /accords/{slug}:
+    get:
+      summary: 계열 상세
+      tags:
+      - catalog
+      operationId: get_accords_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccordSummary'
+        '404':
+          description: Not Found — ACCORD_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: ACCORD_NOT_FOUND
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 계열 상세
+  /accords/{slug}/perfumes:
+    get:
+      summary: 계열 향수 목록
+      tags:
+      - catalog
+      operationId: get_accords_slug_perfumes
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePerfumeSummary'
+        '404':
+          description: Not Found — ACCORD_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: ACCORD_NOT_FOUND
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 계열 향수 목록
+  /perfumes/{slug}:
+    get:
+      summary: 향수 상세
+      tags:
+      - catalog
+      operationId: get_perfumes_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerfumeDetail'
+        '404':
+          description: Not Found — PERFUME_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_NOT_FOUND
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 향수 상세
+  /perfumes/{slug}/reviews:
+    get:
+      summary: 향수의 시향기 목록
+      tags:
+      - reviews
+      operationId: get_perfumes_slug_reviews
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - recommend
+          - latest
+          default: recommend
+      - name: exclude
+        in: query
+        schema:
+          type: string
+        description: 제외할 시향기 슬러그. 없는 슬러그는 무시.
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageReviewCard'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+        '404':
+          description: Not Found — PERFUME_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_NOT_FOUND
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 향수의 시향기 목록
+  /reviews/{slug}:
+    get:
+      summary: 시향기 상세
+      tags:
+      - reviews
+      operationId: get_reviews_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+        '404':
+          description: Not Found — REVIEW_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_NOT_FOUND
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 시향기 상세
+    patch:
+      summary: 시향기 수정 (본인만)
+      tags:
+      - reviews
+      operationId: patch_reviews_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDetail'
+        '400':
+          description: Bad Request — TEXT_REQUIRED, TEXT_TOO_LONG, TAG_REQUIRED, TAG_TOO_MANY, TAG_INVALID, INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: TEXT_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — NOT_REVIEW_OWNER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: NOT_REVIEW_OWNER
+                  message: 오류 메시지
+        '404':
+          description: Not Found — REVIEW_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_NOT_FOUND
+                  message: 오류 메시지
+        '429':
+          description: Too Many Requests — RATE_LIMITED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: RATE_LIMITED
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 시향기 수정 (본인만)
+    delete:
+      summary: 시향기 삭제 (본인, 소프트 삭제)
+      tags:
+      - reviews
+      operationId: delete_reviews_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: 삭제됨
+        '403':
+          description: Forbidden — NOT_REVIEW_OWNER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: NOT_REVIEW_OWNER
+                  message: 오류 메시지
+        '404':
+          description: Not Found — REVIEW_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_NOT_FOUND
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 시향기 삭제 (본인, 소프트 삭제)
+  /users/{code}:
+    get:
+      summary: 작성자 공개 프로필
+      tags:
+      - users
+      operationId: get_users_code
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: Not Found — USER_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: USER_NOT_FOUND
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 작성자 공개 프로필
+  /users/{code}/reviews:
+    get:
+      summary: 작성자의 시향기 (최신순)
+      tags:
+      - users
+      operationId: get_users_code_reviews
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageReviewCard'
+        '404':
+          description: Not Found — USER_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: USER_NOT_FOUND
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 작성자의 시향기 (최신순)
+  /policies/{type}:
+    get:
+      summary: 현재 시행 중인 정책 문서
+      tags:
+      - policies
+      operationId: get_policies_type
+      parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - terms
+          - privacy
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDocument'
+        '404':
+          description: Not Found — POLICY_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: POLICY_NOT_FOUND
+                  message: 오류 메시지
+      security: []
+      description: 현재 시행 중인 정책 문서
+  /policies/{type}/versions:
+    get:
+      summary: 정책 버전 목록
+      tags:
+      - policies
+      operationId: get_policies_type_versions
+      parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - terms
+          - privacy
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPolicyVersionSummary'
+        '404':
+          description: Not Found — POLICY_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: POLICY_NOT_FOUND
+                  message: 오류 메시지
+      security: []
+      description: 정책 버전 목록
+  /policies/{type}/versions/{version}:
+    get:
+      summary: 특정 버전 정책 문서
+      tags:
+      - policies
+      operationId: get_policies_type_versions_version
+      parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - terms
+          - privacy
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDocument'
+        '404':
+          description: Not Found — POLICY_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: POLICY_NOT_FOUND
+                  message: 오류 메시지
+      security: []
+      description: 특정 버전 정책 문서
+  /tag-questions:
+    get:
+      summary: 태그 질문·선택지
+      tags:
+      - policies
+      operationId: get_tag_questions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTagQuestion'
+      security: []
+      description: 태그 질문·선택지
+  /auth/{provider}/login:
+    get:
+      summary: 소셜 로그인 시작 (302)
+      tags:
+      - auth
+      operationId: get_auth_provider_login
+      parameters:
+      - name: provider
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - kakao
+          - naver
+          - google
+        description: 9단계에서 공급자 확정 시 축소.
+      - name: trigger
+        in: query
+        schema:
+          type: string
+          enum:
+          - write
+          - recommend
+          - my
+      - name: return_to
+        in: query
+        schema:
+          type: string
+        description: 서비스 내부 경로만 허용(오픈 리다이렉트 방지)
+      responses:
+        '302':
+          description: 공급자 인증 화면으로 리다이렉트
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+        '409':
+          description: Conflict — ALREADY_LOGGED_IN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: ALREADY_LOGGED_IN
+                  message: 오류 메시지
+      security: []
+      description: 소셜 로그인 시작 (302)
+  /auth/{provider}/callback:
+    post:
+      summary: 소셜 로그인 콜백 (가입 또는 로그인, 세션 쿠키 발급)
+      tags:
+      - auth
+      operationId: post_auth_provider_callback
+      parameters:
+      - name: provider
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - kakao
+          - naver
+          - google
+        description: 9단계에서 공급자 확정 시 축소.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginCallbackRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginCallbackResponse'
+        '400':
+          description: Bad Request — INVALID_STATE, LOGIN_CANCELLED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_STATE
+                  message: 오류 메시지
+        '409':
+          description: Conflict — ALREADY_LOGGED_IN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: ALREADY_LOGGED_IN
+                  message: 오류 메시지
+        '502':
+          description: Bad Gateway — PROVIDER_ERROR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PROVIDER_ERROR
+                  message: 오류 메시지
+      security: []
+      description: 소셜 로그인 콜백 (가입 또는 로그인, 세션 쿠키 발급)
+  /auth/logout:
+    post:
+      summary: 로그아웃
+      tags:
+      - auth
+      operationId: post_auth_logout
+      responses:
+        '204':
+          description: 세션 삭제·쿠키 만료
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 로그아웃
+  /me:
+    get:
+      summary: 내 정보 (비로그인이면 null)
+      tags:
+      - me
+      operationId: get_me
+      description: 내 정보 (비로그인이면 null)
+      security:
+      - {}
+      - sessionCookie: []
+      parameters:
+      - name: include
+        in: query
+        schema:
+          type: string
+          enum:
+          - personal
+        description: personal이면 개인정보 열람(공급자·가입·최종 로그인·동의 이력)
+      responses:
+        '200':
+          description: 비로그인이면 본문 null
+          content:
+            application/json:
+              schema:
+                nullable: true
+                oneOf:
+                - $ref: '#/components/schemas/Me'
+                - $ref: '#/components/schemas/MePersonal'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+    patch:
+      summary: 닉네임 변경
+      tags:
+      - me
+      operationId: patch_me
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NicknameUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '400':
+          description: Bad Request — NICKNAME_INVALID, NICKNAME_RESERVED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: NICKNAME_INVALID
+                  message: 오류 메시지
+        '409':
+          description: Conflict — NICKNAME_TAKEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: NICKNAME_TAKEN
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 닉네임 변경
+    delete:
+      summary: 회원 탈퇴 (익명화·세션 삭제)
+      tags:
+      - me
+      operationId: delete_me
+      parameters:
+      - name: confirm
+        in: query
+        schema:
+          type: boolean
+        required: true
+        description: true여야 한다
+      responses:
+        '204':
+          description: 탈퇴 완료, 쿠키 만료
+        '400':
+          description: Bad Request — CONFIRMATION_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: CONFIRMATION_REQUIRED
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 회원 탈퇴 (익명화·세션 삭제)
+  /me/reviews:
+    get:
+      summary: 내 시향기 (최신순)
+      tags:
+      - me
+      operationId: get_me_reviews
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageMyReviewCard'
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 내 시향기 (최신순)
+  /reviews/{slug}/recommendation:
+    post:
+      summary: 추천
+      tags:
+      - reviews
+      operationId: post_reviews_slug_recommendation
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendState'
+        '403':
+          description: Forbidden — CANNOT_RECOMMEND_OWN_REVIEW
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: CANNOT_RECOMMEND_OWN_REVIEW
+                  message: 오류 메시지
+        '404':
+          description: Not Found — REVIEW_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — ALREADY_RECOMMENDED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: ALREADY_RECOMMENDED
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 추천
+    delete:
+      summary: 추천 취소
+      tags:
+      - reviews
+      operationId: delete_reviews_slug_recommendation
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendState'
+        '404':
+          description: Not Found — REVIEW_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — NOT_RECOMMENDED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: NOT_RECOMMENDED
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 추천 취소
+  /reviews/{slug}/reports:
+    post:
+      summary: 신고 (게스트 가능)
+      tags:
+      - reviews
+      operationId: post_reviews_slug_reports
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCreate'
+      responses:
+        '204':
+          description: 접수됨
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — CANNOT_REPORT_OWN_REVIEW
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: CANNOT_REPORT_OWN_REVIEW
+                  message: 오류 메시지
+        '404':
+          description: Not Found — REVIEW_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — ALREADY_REPORTED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: ALREADY_REPORTED
+                  message: 오류 메시지
+        '429':
+          description: Too Many Requests — REPORT_LIMIT_EXCEEDED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REPORT_LIMIT_EXCEEDED
+                  message: 오류 메시지
+      security:
+      - {}
+      - sessionCookie: []
+      description: 신고 (게스트 가능)
+  /prompt-cards/random:
+    get:
+      summary: 질문 카드 랜덤 1개
+      tags:
+      - write-helpers
+      operationId: get_prompt_cards_random
+      parameters:
+      - name: exclude
+        in: query
+        schema:
+          type: string
+        description: 직전 카드 code
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptCard'
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 질문 카드 랜덤 1개
+  /placeholders:
+    get:
+      summary: 회전 예시 문구
+      tags:
+      - write-helpers
+      operationId: get_placeholders
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPlaceholder'
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 회전 예시 문구
+  /admin/reviews:
+    get:
+      summary: 시향기 목록 (삭제분 포함)
+      tags:
+      - admin
+      operationId: get_admin_reviews
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: 작성자 닉네임·향수명 부분일치
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - all
+          - active
+          - deleted
+          default: all
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - latest
+          - recommend
+          - report
+          default: latest
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAdminReviewRow'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 시향기 목록 (삭제분 포함)
+  /admin/reviews/{slug}:
+    get:
+      summary: 시향기 단건 (삭제분 포함)
+      tags:
+      - admin
+      operationId: get_admin_reviews_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminReviewDetail'
+        '404':
+          description: Not Found — REVIEW_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_NOT_FOUND
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 시향기 단건 (삭제분 포함)
+    patch:
+      summary: 시향기 수정
+      tags:
+      - admin
+      operationId: patch_admin_reviews_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminReviewUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminReviewDetail'
+        '400':
+          description: Bad Request — TEXT_REQUIRED, TEXT_TOO_LONG, TAG_REQUIRED, TAG_TOO_MANY, TAG_INVALID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: TEXT_REQUIRED
+                  message: 오류 메시지
+        '404':
+          description: Not Found — REVIEW_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — REVIEW_ALREADY_DELETED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_ALREADY_DELETED
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 시향기 수정
+    delete:
+      summary: 시향기 삭제 (사유 메모 필수, JSON 본문)
+      tags:
+      - admin
+      operationId: delete_admin_reviews_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonMemo'
+      responses:
+        '204':
+          description: 삭제됨
+        '400':
+          description: Bad Request — REASON_MEMO_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REASON_MEMO_REQUIRED
+                  message: 오류 메시지
+        '404':
+          description: Not Found — REVIEW_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — REVIEW_ALREADY_DELETED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REVIEW_ALREADY_DELETED
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 게이트웨이가 DELETE 본문을 버리면 POST /admin/reviews/{slug}/deletion으로 대체(9단계).
+  /admin/brands:
+    get:
+      summary: 브랜드 목록
+      tags:
+      - admin
+      operationId: get_admin_brands
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAdminBrand'
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 브랜드 목록
+    post:
+      summary: 브랜드 등록
+      tags:
+      - admin
+      operationId: post_admin_brands
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminBrandWrite'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBrand'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+        '409':
+          description: Conflict — BRAND_ALREADY_EXISTS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_ALREADY_EXISTS
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 브랜드 등록
+  /admin/brands/{slug}:
+    patch:
+      summary: 브랜드 수정
+      tags:
+      - admin
+      operationId: patch_admin_brands_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminBrandWrite'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBrand'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+        '404':
+          description: Not Found — BRAND_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — BRAND_ALREADY_EXISTS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_ALREADY_EXISTS
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 브랜드 수정
+    delete:
+      summary: 브랜드 삭제 (소속 향수 없을 때만)
+      tags:
+      - admin
+      operationId: delete_admin_brands_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: 삭제됨
+        '404':
+          description: Not Found — BRAND_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — BRAND_HAS_PERFUMES
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_HAS_PERFUMES
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 브랜드 삭제 (소속 향수 없을 때만)
+  /admin/brands/{slug}/image-hide:
+    post:
+      summary: 브랜드 이미지 일괄 비공개
+      tags:
+      - admin
+      operationId: post_admin_brands_slug_image_hide
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonMemo'
+      responses:
+        '204':
+          description: 비공개됨
+        '400':
+          description: Bad Request — REASON_MEMO_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REASON_MEMO_REQUIRED
+                  message: 오류 메시지
+        '404':
+          description: Not Found — BRAND_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — BRAND_IMAGE_ALREADY_HIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_IMAGE_ALREADY_HIDDEN
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 브랜드 이미지 일괄 비공개
+    delete:
+      summary: 브랜드 이미지 일괄 비공개 해제 (JSON 본문)
+      tags:
+      - admin
+      operationId: delete_admin_brands_slug_image_hide
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonMemo'
+      responses:
+        '204':
+          description: 해제됨
+        '400':
+          description: Bad Request — REASON_MEMO_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REASON_MEMO_REQUIRED
+                  message: 오류 메시지
+        '404':
+          description: Not Found — BRAND_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — BRAND_IMAGE_NOT_HIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_IMAGE_NOT_HIDDEN
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 브랜드 이미지 일괄 비공개 해제 (JSON 본문)
+  /admin/perfumes:
+    get:
+      summary: 향수 목록
+      tags:
+      - admin
+      operationId: get_admin_perfumes
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: brand
+        in: query
+        schema:
+          type: string
+        description: 브랜드 슬러그
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAdminPerfume'
+        '404':
+          description: Not Found — BRAND_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_NOT_FOUND
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 향수 목록
+    post:
+      summary: 향수 등록
+      tags:
+      - admin
+      operationId: post_admin_perfumes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPerfumeWrite'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPerfume'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+        '404':
+          description: Not Found — BRAND_NOT_FOUND, ACCORD_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: BRAND_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — PERFUME_ALREADY_EXISTS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_ALREADY_EXISTS
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 향수 등록
+  /admin/perfumes/{slug}:
+    patch:
+      summary: 향수 수정
+      tags:
+      - admin
+      operationId: patch_admin_perfumes_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPerfumeWrite'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPerfume'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+        '404':
+          description: Not Found — PERFUME_NOT_FOUND, BRAND_NOT_FOUND, ACCORD_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — PERFUME_ALREADY_EXISTS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_ALREADY_EXISTS
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 향수 수정
+    delete:
+      summary: 향수 삭제 (시향기가 있으면 차단)
+      tags:
+      - admin
+      operationId: delete_admin_perfumes_slug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: 삭제됨
+        '404':
+          description: Not Found — PERFUME_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — PERFUME_HAS_REVIEWS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_HAS_REVIEWS
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 시향기(소프트 삭제분 포함)가 있으면 409, fields.post_count에 시향기 수.
+  /admin/perfumes/{slug}/image:
+    put:
+      summary: 이미지 등록·교체 (출처 URL 필수)
+      tags:
+      - admin
+      operationId: put_admin_perfumes_slug_image
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminImageUpload'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminImagePutResponse'
+        '400':
+          description: Bad Request — SOURCE_URL_REQUIRED, INVALID_IMAGE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: SOURCE_URL_REQUIRED
+                  message: 오류 메시지
+        '404':
+          description: Not Found — PERFUME_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_NOT_FOUND
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 요청 형식(multipart)은 9단계 미정. 재수집 금지 대조는 막지 않고 warnings로 응답.
+      x-pending-stage: 9
+    patch:
+      summary: 이미지 권리 상태 변경
+      tags:
+      - admin
+      operationId: patch_admin_perfumes_slug_image
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminImageStatusUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminImage'
+        '400':
+          description: Bad Request — REASON_MEMO_REQUIRED, INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REASON_MEMO_REQUIRED
+                  message: 오류 메시지
+        '404':
+          description: Not Found — PERFUME_NOT_FOUND, IMAGE_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — IMAGE_REMOVED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: IMAGE_REMOVED
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 이미지 권리 상태 변경
+  /admin/perfumes/{slug}/history:
+    get:
+      summary: 향수 등록·수정 이력
+      tags:
+      - admin
+      operationId: get_admin_perfumes_slug_history
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAdminLogEntry'
+        '404':
+          description: Not Found — PERFUME_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PERFUME_NOT_FOUND
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 향수 등록·수정 이력
+  /admin/reports:
+    get:
+      summary: 신고 목록
+      tags:
+      - admin
+      operationId: get_admin_reports
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - pending
+          - deleted
+          - ignored
+          - all
+          default: pending
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAdminReport'
+        '400':
+          description: Bad Request — INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: INVALID_PARAMETER
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 신고 목록
+  /admin/reports/{id}:
+    patch:
+      summary: 신고 처리 (같은 글의 미처리 신고 함께 종결)
+      tags:
+      - admin
+      operationId: patch_admin_reports_id
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: 신고의 내부 id (ADR 0021 예외)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminReportAction'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminReport'
+        '400':
+          description: Bad Request — REASON_MEMO_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REASON_MEMO_REQUIRED
+                  message: 오류 메시지
+        '404':
+          description: Not Found — REPORT_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REPORT_NOT_FOUND
+                  message: 오류 메시지
+        '409':
+          description: Conflict — REPORT_ALREADY_HANDLED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: REPORT_ALREADY_HANDLED
+                  message: 오류 메시지
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+        '403':
+          description: Forbidden — FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: FORBIDDEN
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: 신고 처리 (같은 글의 미처리 신고 함께 종결)
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session
+      description: HttpOnly·Secure·SameSite=Lax 세션 쿠키 (쿠키 이름은 구현 단계에서 확정)
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 10
+      description: 기본 10 (ADR 0018). 상한은 구현 단계.
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: k3f9a2x1
+            message:
+              type: string
+              example: 오류 메시지
+            fields:
+              type: object
+              additionalProperties:
+                type: string
+          required:
+          - code
+          - message
+      required:
+      - error
+    Image:
+      type: object
+      properties:
+        url:
+          type: string
+          example: https://example.com/img/o-rose.png
+        alt:
+          type: string
+          example: 오 로즈 향수 병
+      required:
+      - url
+      - alt
+      description: null이면 화면이 텍스트 카드로 폴백한다. 이미지 없음·권리 상태 비정상·브랜드 일괄 비공개면 서버가 null.
+      nullable: true
+    BrandRef:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        name:
+          type: string
+          example: 오 로즈
+      required:
+      - slug
+      - name
+    AccordRef:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        name:
+          type: string
+          example: 오 로즈
+      required:
+      - slug
+      - name
+    PerfumeRef:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        name:
+          type: string
+          example: 오 로즈
+        brand:
+          $ref: '#/components/schemas/BrandRef'
+        image:
+          $ref: '#/components/schemas/Image'
+      required:
+      - slug
+      - name
+      - brand
+      - image
+    PerfumeSummary:
+      allOf:
+      - $ref: '#/components/schemas/PerfumeRef'
+      - type: object
+        properties:
+          post_count:
+            type: integer
+            example: 12
+          total_recommend_count:
+            type: integer
+            example: 12
+          my_review_slug:
+            type: string
+            nullable: true
+        required:
+        - post_count
+        - total_recommend_count
+        - my_review_slug
+        description: 'my_review_slug: 로그인한 회원이 이 향수에 이미 쓴 시향기(소프트 삭제분 제외). 게스트·미작성이면 null (ADR 0023).'
+    PerfumeDetail:
+      allOf:
+      - $ref: '#/components/schemas/PerfumeSummary'
+      - type: object
+        properties:
+          name_original:
+            type: string
+            nullable: true
+          notes:
+            type: string
+            nullable: true
+            example: 장미, 리치, 시더우드
+          accords:
+            type: array
+            items:
+              $ref: '#/components/schemas/AccordRef'
+        required:
+        - name_original
+        - notes
+        - accords
+    Author:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+          example: k3f9a2x1
+        nickname:
+          type: string
+          example: 수줍은 베르가못
+      required:
+      - code
+      - nickname
+      description: 탈퇴 회원은 code null, nickname user_NNNNNN.
+    Tag:
+      type: object
+      properties:
+        question_code:
+          type: string
+          example: age
+        code:
+          type: string
+          example: k3f9a2x1
+        label:
+          type: string
+          example: 20대
+      required:
+      - question_code
+      - code
+      - label
+    ReviewCard:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        content:
+          type: string
+          example: 첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.
+        perfume:
+          $ref: '#/components/schemas/PerfumeRef'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        author:
+          $ref: '#/components/schemas/Author'
+        recommend_count:
+          type: integer
+          example: 12
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - slug
+      - content
+      - perfume
+      - tags
+      - author
+      - recommend_count
+      - created_at
+      description: tags는 대표 태그(나이대 1 + 성격 1, 먼저 고른 것 — ADR 0013).
+    ProfileRow:
+      type: object
+      properties:
+        question:
+          type: object
+          properties:
+            code:
+              type: string
+              example: k3f9a2x1
+            label:
+              type: string
+              example: 20대
+          required:
+          - code
+          - label
+        answers:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                example: k3f9a2x1
+              label:
+                type: string
+                example: 20대
+            required:
+            - code
+            - label
+      required:
+      - question
+      - answers
+    ReviewDetail:
+      allOf:
+      - $ref: '#/components/schemas/ReviewCard'
+      - type: object
+        properties:
+          profile:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProfileRow'
+          updated_at:
+            type: string
+            format: date-time
+          my_recommended:
+            type: boolean
+          is_mine:
+            type: boolean
+        required:
+        - profile
+        - updated_at
+        - my_recommended
+        - is_mine
+    MyReviewCard:
+      allOf:
+      - $ref: '#/components/schemas/ReviewCard'
+      - type: object
+        properties:
+          updated_at:
+            type: string
+            format: date-time
+        required:
+        - updated_at
+    BrandSummary:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        name:
+          type: string
+          example: 오 로즈
+        logo:
+          $ref: '#/components/schemas/Image'
+        group:
+          type: string
+          example: ㄷ
+        perfume_count:
+          type: integer
+          example: 12
+      required:
+      - slug
+      - name
+      - logo
+      - group
+      - perfume_count
+    BrandDetail:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        name:
+          type: string
+          example: 오 로즈
+        logo:
+          $ref: '#/components/schemas/Image'
+        perfume_count:
+          type: integer
+          example: 12
+      required:
+      - slug
+      - name
+      - logo
+      - perfume_count
+    AccordSummary:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        name:
+          type: string
+          example: 오 로즈
+        perfume_count:
+          type: integer
+          example: 12
+      required:
+      - slug
+      - name
+      - perfume_count
+    SearchResult:
+      type: object
+      properties:
+        perfumes:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/PerfumeSummary'
+        brands:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/BrandSummary'
+      required:
+      - perfumes
+      - brands
+    UserProfile:
+      type: object
+      properties:
+        code:
+          type: string
+          example: k3f9a2x1
+        nickname:
+          type: string
+          example: 수줍은 베르가못
+        post_count:
+          type: integer
+          example: 12
+        received_recommend_count:
+          type: integer
+          example: 12
+      required:
+      - code
+      - nickname
+      - post_count
+      - received_recommend_count
+    PolicyVersionSummary:
+      type: object
+      properties:
+        version:
+          type: string
+          example: '2026-11-01'
+        start_date:
+          type: string
+          format: date-time
+        post_date:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - scheduled
+          - current
+          - past
+      required:
+      - version
+      - start_date
+      - post_date
+      - status
+    PolicyDocument:
+      allOf:
+      - $ref: '#/components/schemas/PolicyVersionSummary'
+      - type: object
+        properties:
+          type:
+            type: string
+            enum:
+            - terms
+            - privacy
+          content:
+            type: string
+            example: 첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.
+        required:
+        - type
+        - content
+    TagQuestion:
+      type: object
+      properties:
+        code:
+          type: string
+          example: k3f9a2x1
+        label:
+          type: string
+          example: 20대
+        min:
+          type: integer
+          example: 12
+        max:
+          type: integer
+          example: 12
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                example: k3f9a2x1
+              label:
+                type: string
+                example: 20대
+            required:
+            - code
+            - label
+      required:
+      - code
+      - label
+      - min
+      - max
+      - choices
+    Me:
+      type: object
+      properties:
+        code:
+          type: string
+          example: k3f9a2x1
+        nickname:
+          type: string
+          example: 수줍은 베르가못
+        is_admin:
+          type: boolean
+        post_count:
+          type: integer
+          example: 12
+        received_recommend_count:
+          type: integer
+          example: 12
+      required:
+      - code
+      - nickname
+      - is_admin
+      - post_count
+      - received_recommend_count
+    MePersonal:
+      allOf:
+      - $ref: '#/components/schemas/Me'
+      - type: object
+        properties:
+          personal:
+            type: object
+            properties:
+              provider:
+                type: string
+                enum:
+                - kakao
+                - naver
+                - google
+              joined_at:
+                type: string
+                format: date-time
+              last_login_at:
+                type: string
+                format: date-time
+              consents:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    terms_version:
+                      type: string
+                    privacy_version:
+                      type: string
+                    agreed_at:
+                      type: string
+                      format: date-time
+                    route:
+                      type: string
+                      enum:
+                      - write
+                      - recommend
+                      - my
+                  required:
+                  - terms_version
+                  - privacy_version
+                  - agreed_at
+                  - route
+            required:
+            - provider
+            - joined_at
+            - last_login_at
+            - consents
+        required:
+        - personal
+    TagAnswer:
+      type: object
+      properties:
+        question_code:
+          type: string
+          example: age
+        choice_codes:
+          type: array
+          items:
+            type: string
+          description: 배열 순서 = 선택 순서(selection_sequence).
+      required:
+      - question_code
+      - choice_codes
+    RecommendState:
+      type: object
+      properties:
+        recommend_count:
+          type: integer
+          example: 12
+        my_recommended:
+          type: boolean
+      required:
+      - recommend_count
+      - my_recommended
+    ReviewCreate:
+      type: object
+      properties:
+        perfume_slug:
+          type: string
+        content:
+          type: string
+          description: 앞뒤 공백 제거 후 1~100자. 줄바꿈은 공백으로 치환.
+          example: 첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagAnswer'
+      required:
+      - perfume_slug
+      - content
+      - tags
+    ReviewUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+          example: 첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagAnswer'
+      description: content·tags 중 하나 이상. tags는 전체 교체. 향수·작성자는 변경 불가.
+    NicknameUpdate:
+      type: object
+      properties:
+        nickname:
+          type: string
+          minLength: 2
+          maxLength: 12
+          example: 수줍은 베르가못
+      required:
+      - nickname
+    ReportCreate:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+          - misinformation
+          - hate
+          - spam
+          - other
+      required:
+      - reason
+    PromptCard:
+      type: object
+      properties:
+        code:
+          type: string
+          example: k3f9a2x1
+        text:
+          type: string
+          example: 이 사람의 MBTI는?
+      required:
+      - code
+      - text
+    LoginCallbackRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          example: k3f9a2x1
+        state:
+          type: string
+        error:
+          type: string
+      required:
+      - state
+      description: 정상 응답이면 code, 사용자가 취소했으면 error.
+    LoginCallbackResponse:
+      type: object
+      properties:
+        me:
+          $ref: '#/components/schemas/Me'
+        is_new_user:
+          type: boolean
+        trigger:
+          type: string
+          nullable: true
+        return_to:
+          type: string
+          nullable: true
+      required:
+      - me
+      - is_new_user
+      - trigger
+      - return_to
+    ReasonMemo:
+      type: object
+      properties:
+        reason_memo:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - reason_memo
+    AdminReviewRow:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        content:
+          type: string
+          example: 첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.
+        perfume:
+          $ref: '#/components/schemas/PerfumeRef'
+        author:
+          $ref: '#/components/schemas/Author'
+        created_at:
+          type: string
+          format: date-time
+        recommend_count:
+          type: integer
+          example: 12
+        report_count:
+          type: integer
+          example: 12
+        status:
+          type: string
+          enum:
+          - active
+          - deleted
+        deleted:
+          type: object
+          properties:
+            by:
+              type: string
+              enum:
+              - user
+              - admin
+            at:
+              type: string
+              format: date-time
+            memo:
+              type: string
+              nullable: true
+              example: 허위 정보 확인
+          required:
+          - by
+          - at
+          - memo
+          nullable: true
+      required:
+      - slug
+      - content
+      - perfume
+      - author
+      - created_at
+      - recommend_count
+      - report_count
+      - status
+      - deleted
+    AdminReviewDetail:
+      allOf:
+      - $ref: '#/components/schemas/AdminReviewRow'
+      - type: object
+        properties:
+          tags:
+            type: array
+            items:
+              $ref: '#/components/schemas/Tag'
+          profile:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProfileRow'
+          updated_at:
+            type: string
+            format: date-time
+        required:
+        - tags
+        - profile
+        - updated_at
+    AdminReviewUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+          example: 첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagAnswer'
+        reason_memo:
+          type: string
+          minLength: 1
+          maxLength: 200
+    AdminBrand:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        name:
+          type: string
+          example: 오 로즈
+        name_original:
+          type: string
+          nullable: true
+        name_align:
+          type: string
+        search_aliases:
+          type: string
+          nullable: true
+        logo:
+          $ref: '#/components/schemas/Image'
+        image_hidden:
+          type: boolean
+        perfume_count:
+          type: integer
+          example: 12
+      required:
+      - slug
+      - name
+      - name_original
+      - name_align
+      - search_aliases
+      - logo
+      - image_hidden
+      - perfume_count
+    AdminBrandWrite:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 오 로즈
+        name_original:
+          type: string
+        name_align:
+          type: string
+        search_aliases:
+          type: string
+        logo:
+          type: string
+          nullable: true
+          description: 로고 파일 전달 방식은 9단계 미정(multipart vs 임시 주소). 필드 이름·의미만 확정.
+          x-pending-stage: 9
+      description: POST는 name 필수. PATCH는 바꿀 것만. 슬러그는 변경 불가.
+    AdminImage:
+      type: object
+      properties:
+        url:
+          type: string
+          nullable: true
+          example: https://example.com/img/o-rose.png
+        alt:
+          type: string
+          example: 오 로즈 향수 병
+        source_url:
+          type: string
+          example: https://example.com/official/o-rose
+        collected_at:
+          type: string
+          format: date-time
+        processed_at:
+          type: string
+          format: date-time
+          nullable: true
+        rights_status:
+          type: string
+          enum:
+          - normal
+          - disputed
+          - hidden
+          - removed
+        visible:
+          type: boolean
+        registered_by:
+          type: object
+          properties:
+            nickname:
+              type: string
+              example: 수줍은 베르가못
+          required:
+          - nickname
+          nullable: true
+      required:
+      - url
+      - alt
+      - source_url
+      - collected_at
+      - processed_at
+      - rights_status
+      - visible
+      - registered_by
+    AdminPerfume:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: 8f3k2a1x
+        name:
+          type: string
+          example: 오 로즈
+        name_original:
+          type: string
+          nullable: true
+        name_align:
+          type: string
+        search_aliases:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+          example: 장미, 리치, 시더우드
+        brand:
+          $ref: '#/components/schemas/BrandRef'
+        accords:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccordRef'
+        image:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/AdminImage'
+        post_count:
+          type: integer
+          example: 12
+        total_recommend_count:
+          type: integer
+          example: 12
+      required:
+      - slug
+      - name
+      - name_original
+      - name_align
+      - search_aliases
+      - notes
+      - brand
+      - accords
+      - image
+      - post_count
+      - total_recommend_count
+    AdminPerfumeWrite:
+      type: object
+      properties:
+        brand_slug:
+          type: string
+        name:
+          type: string
+          example: 오 로즈
+        name_original:
+          type: string
+        name_align:
+          type: string
+        search_aliases:
+          type: string
+        notes:
+          type: string
+          example: 장미, 리치, 시더우드
+        accord_slugs:
+          type: array
+          items:
+            type: string
+      description: POST는 brand_slug·name·accord_slugs 필수. PATCH는 바꿀 것만(accord_slugs는 전체 교체).
+    AdminImageUpload:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: 전달 방식은 9단계 미정
+        source_url:
+          type: string
+          format: uri
+          pattern: ^https://
+        alt:
+          type: string
+          example: 오 로즈 향수 병
+      required:
+      - file
+      - source_url
+      - alt
+    AdminImagePutResponse:
+      type: object
+      properties:
+        image:
+          $ref: '#/components/schemas/AdminImage'
+        warnings:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                enum:
+                - FORBIDDEN_RESTORE_MATCH
+              message:
+                type: string
+                example: 오류 메시지
+            required:
+            - code
+            - message
+      required:
+      - image
+      - warnings
+    AdminImageStatusUpdate:
+      type: object
+      properties:
+        rights_status:
+          type: string
+          enum:
+          - normal
+          - disputed
+          - hidden
+          - removed
+        reason_memo:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - rights_status
+      - reason_memo
+    AdminLogEntry:
+      type: object
+      properties:
+        at:
+          type: string
+          format: date-time
+        admin:
+          type: object
+          properties:
+            nickname:
+              type: string
+              example: 수줍은 베르가못
+          required:
+          - nickname
+        action:
+          type: string
+          enum:
+          - create
+          - update
+          - image_put
+          - image_status
+          - delete
+        memo:
+          type: string
+          nullable: true
+          example: 허위 정보 확인
+      required:
+      - at
+      - admin
+      - action
+      - memo
+    AdminReport:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 12
+        reason:
+          type: string
+          enum:
+          - misinformation
+          - hate
+          - spam
+          - other
+        reported_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - pending
+          - deleted
+          - ignored
+        handled_at:
+          type: string
+          format: date-time
+          nullable: true
+        handled_by:
+          type: object
+          properties:
+            nickname:
+              type: string
+              example: 수줍은 베르가못
+          required:
+          - nickname
+          nullable: true
+        reporter:
+          type: object
+          properties:
+            code:
+              type: string
+              nullable: true
+              example: k3f9a2x1
+            nickname:
+              type: string
+              example: 수줍은 베르가못
+          required:
+          - code
+          - nickname
+          nullable: true
+        review:
+          type: object
+          properties:
+            slug:
+              type: string
+              example: 8f3k2a1x
+            content:
+              type: string
+              example: 첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.
+            perfume:
+              $ref: '#/components/schemas/PerfumeRef'
+            status:
+              type: string
+              enum:
+              - active
+              - deleted
+          required:
+          - slug
+          - content
+          - perfume
+          - status
+        review_report_count:
+          type: integer
+          example: 12
+      required:
+      - id
+      - reason
+      - reported_at
+      - status
+      - handled_at
+      - handled_by
+      - reporter
+      - review
+      - review_report_count
+      description: id는 신고의 내부 id(ADR 0021 예외). reporter가 null이면 게스트 신고.
+    AdminReportAction:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - delete
+          - ignore
+        reason_memo:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - action
+      description: delete는 reason_memo 필수.
+    PageReviewCard:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewCard'
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 134
+        total_pages:
+          type: integer
+          example: 14
+      required:
+      - items
+      - page
+      - size
+      - total_items
+      - total_pages
+    PageMyReviewCard:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyReviewCard'
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 134
+        total_pages:
+          type: integer
+          example: 14
+      required:
+      - items
+      - page
+      - size
+      - total_items
+      - total_pages
+    PagePerfumeSummary:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerfumeSummary'
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 134
+        total_pages:
+          type: integer
+          example: 14
+      required:
+      - items
+      - page
+      - size
+      - total_items
+      - total_pages
+    PageAdminReviewRow:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminReviewRow'
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 134
+        total_pages:
+          type: integer
+          example: 14
+      required:
+      - items
+      - page
+      - size
+      - total_items
+      - total_pages
+    PageAdminBrand:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminBrand'
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 134
+        total_pages:
+          type: integer
+          example: 14
+      required:
+      - items
+      - page
+      - size
+      - total_items
+      - total_pages
+    PageAdminPerfume:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminPerfume'
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 134
+        total_pages:
+          type: integer
+          example: 14
+      required:
+      - items
+      - page
+      - size
+      - total_items
+      - total_pages
+    PageAdminLogEntry:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminLogEntry'
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 134
+        total_pages:
+          type: integer
+          example: 14
+      required:
+      - items
+      - page
+      - size
+      - total_items
+      - total_pages
+    PageAdminReport:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminReport'
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 134
+        total_pages:
+          type: integer
+          example: 14
+      required:
+      - items
+      - page
+      - size
+      - total_items
+      - total_pages
+    ListBrandSummary:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrandSummary'
+      required:
+      - items
+    ListAccordSummary:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccordSummary'
+      required:
+      - items
+    ListPolicyVersionSummary:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyVersionSummary'
+      required:
+      - items
+    ListTagQuestion:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagQuestion'
+      required:
+      - items
+    ListPlaceholder:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Placeholder'
+      required:
+      - items
+    Placeholder:
+      type: object
+      properties:
+        text:
+          type: string
+          example: 이 사람의 MBTI는?
+      required:
+      - text
