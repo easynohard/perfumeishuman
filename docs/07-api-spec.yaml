@@ -69,7 +69,13 @@ paths:
               $ref: '#/components/schemas/ReviewCreate'
       responses:
         '201':
-          description: 'Location: /api/v1/reviews/{slug}'
+          description: Created — 등록된 시향기
+          headers:
+            Location:
+              description: 새 시향기 리소스 경로
+              schema:
+                type: string
+                example: /api/v1/reviews/8f3k2a1x
           content:
             application/json:
               schema:
@@ -840,10 +846,19 @@ paths:
         in: query
         schema:
           type: string
-        description: 서비스 내부 경로만 허용(오픈 리다이렉트 방지)
+          pattern: ^/(?![/\\])
+          example: /reviews/8f3k2a1x
+        description: 서비스 내부 경로만 허용(오픈 리다이렉트 방지). `/`로 시작하고 `//`·`/\`로 시작하지 않아야 한다. 어기면 400 INVALID_PARAMETER.
       responses:
         '302':
           description: 공급자 인증 화면으로 리다이렉트
+          headers:
+            Location:
+              description: 공급자 인증 화면 주소. trigger·return_to는 OAuth state에 실려 운반된다.
+              schema:
+                type: string
+                format: uri
+                example: https://kauth.kakao.com/oauth/authorize?client_id=...&redirect_uri=...&response_type=code&state=...
         '400':
           description: Bad Request — INVALID_PARAMETER
           content:
@@ -1679,7 +1694,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminBrandWrite'
+              $ref: '#/components/schemas/AdminBrandCreate'
       responses:
         '201':
           description: OK
@@ -1747,7 +1762,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminBrandWrite'
+              $ref: '#/components/schemas/AdminBrandUpdate'
       responses:
         '200':
           description: OK
@@ -2080,7 +2095,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminPerfumeWrite'
+              $ref: '#/components/schemas/AdminPerfumeCreate'
       responses:
         '201':
           description: OK
@@ -2158,7 +2173,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminPerfumeWrite'
+              $ref: '#/components/schemas/AdminPerfumeUpdate'
       responses:
         '200':
           description: OK
@@ -3152,7 +3167,9 @@ components:
           type: string
         content:
           type: string
-          description: 앞뒤 공백 제거 후 1~100자. 줄바꿈은 공백으로 치환.
+          minLength: 1
+          maxLength: 100
+          description: 앞뒤 공백 제거 후 1~100자. 줄바꿈은 공백으로 치환. 스키마의 길이 제한은 1차 검사이고, 공백 제거 후 최종 판정은 서버가 한다(공백뿐이면 400 TEXT_REQUIRED, 초과면 400 TEXT_TOO_LONG).
           example: 첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.
         tags:
           type: array
@@ -3167,6 +3184,9 @@ components:
       properties:
         content:
           type: string
+          minLength: 1
+          maxLength: 100
+          description: ReviewCreate.content와 같은 규칙(공백 제거 후 1~100자).
           example: 첫 출근날 긴장한 신입사원 같은 향이에요. 단정한데 손끝은 떨리는.
         tags:
           type: array
@@ -3371,12 +3391,13 @@ components:
       - logo
       - image_hidden
       - perfume_count
-    AdminBrandWrite:
+    AdminBrandCreate:
       type: object
       properties:
         name:
           type: string
-          example: 오 로즈
+          minLength: 1
+          example: 딥티크
         name_original:
           type: string
         name_align:
@@ -3388,7 +3409,29 @@ components:
           nullable: true
           description: 로고 파일 전달 방식은 9단계 미정(multipart vs 임시 주소). 필드 이름·의미만 확정.
           x-pending-stage: 9
-      description: POST는 name 필수. PATCH는 바꿀 것만. 슬러그는 변경 불가.
+      required:
+      - name
+      description: 브랜드 등록. 슬러그는 서버가 생성하며 이후 변경 불가.
+    AdminBrandUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: 딥티크
+        name_original:
+          type: string
+        name_align:
+          type: string
+        search_aliases:
+          type: string
+        logo:
+          type: string
+          nullable: true
+          description: 로고 파일 전달 방식은 9단계 미정(multipart vs 임시 주소). 필드 이름·의미만 확정. 로고를 지우려면 null.
+          x-pending-stage: 9
+      description: 브랜드 수정. 바꿀 필드만 보낸다(1개 이상). 슬러그는 변경 불가.
     AdminImage:
       type: object
       properties:
@@ -3485,13 +3528,15 @@ components:
       - image
       - post_count
       - total_recommend_count
-    AdminPerfumeWrite:
+    AdminPerfumeCreate:
       type: object
       properties:
         brand_slug:
           type: string
+          minLength: 1
         name:
           type: string
+          minLength: 1
           example: 오 로즈
         name_original:
           type: string
@@ -3504,9 +3549,46 @@ components:
           example: 장미, 리치, 시더우드
         accord_slugs:
           type: array
+          minItems: 1
+          uniqueItems: true
           items:
             type: string
-      description: POST는 brand_slug·name·accord_slugs 필수. PATCH는 바꿀 것만(accord_slugs는 전체 교체).
+            minLength: 1
+          description: 계열 1개 이상 필수.
+      required:
+      - brand_slug
+      - name
+      - accord_slugs
+      description: 향수 등록. 이미지는 등록 후 PUT /admin/perfumes/{slug}/image로 따로 올린다.
+    AdminPerfumeUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        brand_slug:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+          example: 오 로즈
+        name_original:
+          type: string
+        name_align:
+          type: string
+        search_aliases:
+          type: string
+        notes:
+          type: string
+          example: 장미, 리치, 시더우드
+        accord_slugs:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+          description: 전체 교체. 보낼 경우 1개 이상(계열을 모두 비울 수 없다).
+      description: 향수 수정. 바꿀 필드만 보낸다(1개 이상).
     AdminImageUpload:
       type: object
       properties:
