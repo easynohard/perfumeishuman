@@ -6,10 +6,10 @@
 <title>향수가 사람이라면? — 시연 데모</title>
 <style>
   :root {
-    --bg:#F7F8FB; --surface:#fff; --ink:#131730; --muted:#5C6379; --line:#DCE0EC;
-    --accent:#002FA5; --band-read:#E9EEFA;
-    --rose:#C13D6F; --band-member:#F9EAF1;
-    --gold:#7A5E17; --gold-line:#C9A227; --band-admin:#F6EFDC;
+    --bg:#FFFFFF; --surface:#FFFFFF; --ink:#0A0A0A; --muted:#595959; --line:#E4E4E7; --line-strong:#767676;
+    --accent:#0047AB; --band-read:#EEF3FC;
+    --rose:#0047AB; --band-member:#EEF3FC;
+    --gold:#0A0A0A; --gold-line:#0A0A0A; --band-admin:#F4F4F5;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
@@ -61,7 +61,7 @@
   /* ===== 우측: 이동 경로 ===== */
   .now{font-family:var(--mono);font-size:12px;word-break:break-all}
   .zone{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:999px;margin-left:6px;font-family:inherit}
-  .z-guest{color:var(--accent);background:var(--band-read)} .z-member{color:var(--rose);background:var(--band-member)} .z-admin{color:var(--gold);background:var(--band-admin)}
+  .z-guest{color:var(--accent);background:var(--band-read)} .z-member{color:#fff;background:var(--accent)} .z-admin{color:#fff;background:var(--ink)}
   .trail{list-style:none;margin:10px 0 0;padding:0 0 0 12px;border-left:2px solid var(--line);max-height:420px;overflow:auto}
   .trail li{position:relative;padding:3px 0 3px 10px;font-size:12px;color:var(--muted)}
   .trail li::before{content:"";position:absolute;left:-17px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
@@ -71,7 +71,7 @@
 
   /* ===== 폰 프레임 ===== */
   .center{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%;max-width:390px}
-  .phone{position:relative;width:100%;height:min(780px,calc(100vh - 70px));flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:30px;box-shadow:0 8px 30px rgba(19,23,48,.08);overflow:hidden;display:flex;flex-direction:column}
+  .phone{position:relative;width:100%;height:min(780px,calc(100vh - 70px));flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:30px;box-shadow:0 8px 30px rgba(10,10,10,.08);overflow:hidden;display:flex;flex-direction:column}
   .scroll{flex:1;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
   .scroll::-webkit-scrollbar{width:0}
   .hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px 10px;font-weight:800;font-size:15px;flex:0 0 auto}
@@ -145,7 +145,7 @@
   .acts{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
   .mini{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:2px 10px;font-size:11.5px;font-weight:600}
   .mini:hover{border-color:var(--rose);color:var(--rose)}
-  .mine-badge{display:inline-block;font-size:10.5px;font-weight:700;color:var(--rose);background:var(--band-member);padding:0 7px;border-radius:999px;margin-left:6px}
+  .mine-badge{display:inline-block;font-size:10.5px;font-weight:700;color:#fff;background:var(--accent);padding:0 7px;border-radius:999px;margin-left:6px}
   .policy{padding:6px 16px 20px;font-size:12.5px;color:var(--muted)} .policy h4{color:var(--ink);margin:14px 0 2px;font-size:13px}
   .policy ul{margin:4px 0;padding-left:18px}
   .linkrow{display:flex;gap:14px;justify-content:center;padding:10px;font-size:12px}
@@ -155,7 +155,7 @@
   .guide{margin:0 16px 4px;font-size:11.5px;color:var(--muted)}
   .wh{padding:12px 16px 0;font-weight:800;font-size:14px;line-height:1.5}
   .ta{position:relative;margin:10px 16px 6px}
-  .ta textarea{width:100%;min-height:96px;resize:none;border:1.5px solid var(--line);border-radius:10px;padding:11px 11px 22px;font:inherit;font-size:14px;line-height:1.6;color:var(--ink);background:var(--surface)}
+  .ta textarea{width:100%;min-height:96px;resize:none;border:1.5px solid var(--line-strong);border-radius:10px;padding:11px 11px 22px;font:inherit;font-size:14px;line-height:1.6;color:var(--ink);background:var(--surface)}
   .ta textarea:focus{outline:none;border-color:var(--rose)}
   .ta .cnt{position:absolute;right:10px;bottom:6px;font-size:11px;color:var(--muted);font-family:var(--mono)}
   .qbtn{display:block;margin:0 auto 6px;border:1px dashed var(--rose);background:none;border-radius:999px;color:var(--rose);font-weight:700;font-size:12.5px;padding:6px 16px}
@@ -168,11 +168,11 @@
   .tg.on{border-color:var(--rose);background:var(--band-member);color:var(--rose);font-weight:800}
   .shake{animation:shake .4s}
   .sres{margin:0 16px}
-  .sin{margin:8px 16px;width:calc(100% - 32px);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;background:var(--surface);color:var(--ink)}
+  .sin{margin:8px 16px;width:calc(100% - 32px);border:1.5px solid var(--line-strong);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;background:var(--surface);color:var(--ink)}
   .sin:focus{outline:none;border-color:var(--accent)}
 
   /* 시트 · 모달 · 토스트 */
-  .scrim{position:absolute;inset:0;background:rgba(19,23,48,.42);z-index:20;display:flex}
+  .scrim{position:absolute;inset:0;background:rgba(10,10,10,.5);z-index:20;display:flex}
   .scrim.bot{align-items:flex-end} .scrim.mid{align-items:center;justify-content:center;padding:18px}
   .sheet{width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:12px 20px 22px;animation:up .22s ease-out}
   .sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px}
@@ -190,7 +190,7 @@
   .toast{position:absolute;left:16px;right:16px;bottom:74px;z-index:30;background:var(--ink);color:#fff;border-radius:11px;padding:10px 14px;font-size:12.5px;text-align:center;animation:up .2s ease-out;pointer-events:none}
 
   .pulse{animation:pulse 1.4s infinite;border-radius:10px}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(193,61,111,.55)}70%{box-shadow:0 0 0 9px rgba(193,61,111,0)}100%{box-shadow:0 0 0 0 rgba(193,61,111,0)}}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,71,171,.45)}70%{box-shadow:0 0 0 9px rgba(0,71,171,0)}100%{box-shadow:0 0 0 0 rgba(0,71,171,0)}}
   @keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
   @keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
   @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -199,14 +199,14 @@
   .adm{width:100%;max-width:820px;background:var(--surface);border:1px solid var(--gold-line);border-radius:14px;overflow:hidden;display:grid;grid-template-columns:150px minmax(0,1fr);min-height:560px}
   .adm nav{border-right:1px solid var(--line);background:var(--band-admin);padding:14px 0}
   .adm nav button{display:block;width:100%;text-align:left;border:0;background:none;padding:10px 16px;font-size:13px;color:var(--muted)}
-  .adm nav button.on{color:var(--gold);font-weight:800;background:var(--surface)}
+  .adm nav button.on{color:var(--ink);font-weight:800;background:var(--surface);box-shadow:inset 3px 0 0 var(--ink)}
   .adm main{padding:16px 18px;overflow-x:auto}
   .adm h3{margin:0 0 4px;font-size:15px} .adm .sub{color:var(--muted);font-size:12px;margin:0 0 12px}
   .adm table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
   .adm th,.adm td{text-align:left;padding:8px 8px;border-top:1px solid var(--line);vertical-align:top}
   .adm th{border:0;color:var(--muted);font-size:11.5px}
   .adm tr.del td{color:var(--muted);text-decoration:line-through} .adm tr.del td:last-child{text-decoration:none}
-  .adm .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:0 7px;border-radius:999px;background:var(--band-admin);color:var(--gold)}
+  .adm .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:0 7px;border-radius:999px;background:var(--ink);color:#fff}
   .adm .bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap}
   .adm .frm{display:grid;gap:8px;max-width:360px;margin:12px 0;padding:12px;border:1px dashed var(--gold-line);border-radius:10px}
   .adm .frm input{border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:inherit;font-size:12.5px}
