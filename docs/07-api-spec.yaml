@@ -831,9 +831,7 @@ paths:
           type: string
           enum:
           - kakao
-          - naver
-          - google
-        description: 9단계에서 공급자 확정 시 축소.
+        description: 카카오 1개로 확정 (ADR 0028). 공급자를 추가할 때는 값만 더한다.
       - name: trigger
         in: query
         schema:
@@ -895,9 +893,7 @@ paths:
           type: string
           enum:
           - kakao
-          - naver
-          - google
-        description: 9단계에서 공급자 확정 시 축소.
+        description: 카카오 1개로 확정 (ADR 0028). 공급자를 추가할 때는 값만 더한다.
       requestBody:
         required: true
         content:
@@ -1121,6 +1117,36 @@ paths:
       security:
       - sessionCookie: []
       description: 내 시향기 (최신순)
+  /me/recommended-reviews:
+    get:
+      summary: 나만의 ♥ 모음 — 내가 추천한 시향기 (추천 시각 최신순)
+      tags:
+      - me
+      operationId: get_me_recommended_reviews
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageRecommendedReviewCard'
+        '401':
+          description: Unauthorized — LOGIN_REQUIRED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LOGIN_REQUIRED
+                  message: 오류 메시지
+      security:
+      - sessionCookie: []
+      description: '나만의 ♥ 모음 (M13·D5, 2026-11-16 추가). 본인 세션의 추천만 반환하며 다른 사용자의 추천 목록을 조회하는 경로는 없다. 정렬은 추천 시각(recommended_at) 최신순.
+        소프트 삭제된 시향기는 items와 total_items에서 모두 제외한다. 작성자가 탈퇴한 시향기는 익명 표시명으로 포함한다. total_items가 MY 탭의 개수 표시에 쓰인다.'
   /reviews/{slug}/recommendation:
     post:
       summary: 추천
@@ -2894,6 +2920,17 @@ components:
             format: date-time
         required:
         - updated_at
+    RecommendedReviewCard:
+      allOf:
+      - $ref: '#/components/schemas/ReviewCard'
+      - type: object
+        properties:
+          recommended_at:
+            type: string
+            format: date-time
+            description: 내가 이 시향기를 추천한 시각. 목록 정렬 기준
+        required:
+        - recommended_at
     BrandSummary:
       type: object
       properties:
@@ -3097,8 +3134,6 @@ components:
                 type: string
                 enum:
                 - kakao
-                - naver
-                - google
               joined_at:
                 type: string
                 format: date-time
@@ -3821,6 +3856,31 @@ components:
         total_pages:
           type: integer
           example: 14
+      required:
+      - items
+      - page
+      - size
+      - total_items
+      - total_pages
+    PageRecommendedReviewCard:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendedReviewCard'
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        total_items:
+          type: integer
+          example: 23
+        total_pages:
+          type: integer
+          example: 3
       required:
       - items
       - page

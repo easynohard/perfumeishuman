@@ -2,6 +2,9 @@
 
 > 프로젝트: **perfumeishuman — "향수가 사람이라면?"**
 > 작성일: 2026-10-03 · 상태: **✅ 확정 (2026-11-12 사용자 승인) — §1 설계 원칙 / §2·§3 (2026-10-30) / §4 (2026-11-04) / §5 yaml (2026-11-04 작성, 2026-11-12 승인)**
+> 개정: 2026-11-16 — 개인정보 열람을 "화면 없이 API로만"에서 "MY의 '내 정보 보기' 모달에서 표시"로 변경(§3.3·§3.9). API는 변경 없음
+> 개정: 2026-11-16 — 소셜 로그인 공급자를 카카오 1개로 확정: `provider` 열거를 `kakao`로 축소(§4.1 `MePersonal`·§4.3.2·시연 대조표·부록 A, yaml 3곳). 근거: [ADR 0028](./adr/0028-login-kakao-better-auth-session.md)
+> 개정: 2026-11-16 — **`GET /me/recommended-reviews`(나만의 ♥ 모음, 01 M13·02 D5)** 추가: §2 MY 표, §4.1 `RecommendedReviewCard`, §4.3.3, 시연 대조표, yaml(39경로)
 > 근거 문서: [02-user-stories.md](./02-user-stories.md) · [03-sitemap-ia.md](./03-sitemap-ia.md) · [04-wireframes.md](./04-wireframes.md) · [05-data-model.md](./05-data-model.md) · [06-erd.md](./06-erd.md)
 > 관련 ADR: [0005](./adr/0005-seo-slug-urls.md) · [0008](./adr/0008-anonymized-retention-on-withdrawal.md) · [0010](./adr/0010-minimal-personal-data-collection.md) · [0011](./adr/0011-soft-delete-reviews.md) · [0012](./adr/0012-identifier-formats.md) · [0014](./adr/0014-login-before-write-entry.md) · [0016](./adr/0016-aggregate-update-and-soft-delete-scope.md) · [0017](./adr/0017-api-design-principles.md) · [0018](./adr/0018-list-page-size.md) · [0019](./adr/0019-accord-naming-unification.md) · [0020](./adr/0020-reconsent-on-policy-revision.md) · [0021](./adr/0021-admin-report-id-exception.md) · [0022](./adr/0022-defer-reconsent-from-mvp.md) · [0023](./adr/0023-one-review-per-user-per-perfume.md)
 
@@ -15,7 +18,7 @@
 | §2 | 화면별 엔드포인트 도출 (화면 16개 기준) | ✅ 확정 (2026-10-30, 커버리지 대조 반영) |
 | §3 | 화면에 없는 API 점검 (탈퇴·동의 기록·개인정보 열람·소셜 로그인 콜백·신고·이미지 비공개·운영 배치·SEO `sitemap.xml`) | ✅ 확정 (2026-10-30) |
 | §4 | 엔드포인트별 계약 (요청·응답·권한·갱신 집계·삭제분 규칙) | ✅ 확정 (2026-11-04, 제안 결정은 권고안대로 채택) (§4.1·§4.2 2026-10-30 / §4.3 회원·§4.4 관리자·§4.5 에러 코드·§4.6 집계 갱신표 2026-11-04) |
-| §5 | OpenAPI 명세 파일 ([`07-api-spec.yaml`](./07-api-spec.yaml), OpenAPI 3.0.3, 엔드포인트 38경로) | ✅ 확정 (2026-11-12 사용자 승인). Spectral(`spectral:oas`) 오류·경고 0건. Swagger UI·Prism 열람과 FL1~FL4 호출 순서 추적은 승인 시점에 수행하지 않았다 — 목 서버(`mock/`)를 쓰는 구현 단계에서 yaml 오류가 드러나면 이 문서와 yaml을 함께 고친다 |
+| §5 | OpenAPI 명세 파일 ([`07-api-spec.yaml`](./07-api-spec.yaml), OpenAPI 3.0.3, 엔드포인트 39경로 — 2026-11-16 `/me/recommended-reviews` 추가) | ✅ 확정 (2026-11-12 사용자 승인, 2026-11-16 개정 승인). Spectral(`spectral:oas`) 오류·경고 0건(2026-11-16 재검사). Swagger UI·Prism 열람과 FL1~FL4 호출 순서 추적은 승인 시점에 수행하지 않았다 — 목 서버(`mock/`)를 쓰는 구현 단계에서 yaml 오류가 드러나면 이 문서와 yaml을 함께 고친다 |
 
 > **이 문서가 이미 확정된 결정을 다시 열지 않는 항목**: 집계 컬럼 갱신 방식(애플리케이션 증감 + 주기 보정)과 소프트 삭제 조회 제외 방식(기본 스코프)은 ADR 0016이 확정했다. 7단계는 엔드포인트별 갱신 대상과 삭제분 규칙을 **명시**하는 일만 한다.
 
@@ -198,6 +201,8 @@
 | | `PATCH /reviews/{slug}` | 시향기 수정 (본인만) | ✕ / ○ / ○ |
 | **MY** | `GET /me` (재사용) | 닉네임·받은 추천 총합·시향기 수. **개인정보 열람도 이 응답을 확장해 제공**한다 (공급자 구분·가입 시각·최종 로그인 시각·동의 이력). 탈퇴 모달의 "소개한 사람들(N)"도 여기서 | ○ / ○ / ○ |
 | | `GET /me/reviews` (페이지) | 내 시향기 목록 (최신순) | ✕ / ○ / ○ |
+| | `GET /me/recommended-reviews` (페이지) | **나만의 ♥ 모음** — 내가 추천한 시향기 목록 (추천 시각 최신순, 2026-11-16 추가, M13·D5) | ✕ / ○ / ○ |
+| | `GET /me?include=personal` | "내 정보 보기" 모달 (2026-11-16, §3.3) | ✕ / ○ / ○ |
 | | `PATCH /me` | 닉네임 변경 | ✕ / ○ / ○ |
 | | `DELETE /reviews/{slug}` | 본인 시향기 삭제 (소프트 삭제) | ✕ / ○ / ○ |
 | | `POST /auth/logout` | 로그아웃 | ✕ / ○ / ○ |
@@ -296,7 +301,7 @@
 
 ### 3.3 개인정보 열람
 
-- **화면 없이 API로만 제공한다**(2026-10-30 확정). 열람권을 화면 없이 API만으로 충족해도 되는지는 8단계 개인정보처리방침 작성 때 법적으로 확인한다.
+- ~~화면 없이 API로만 제공한다(2026-10-30 확정)~~ → **2026-11-16 변경: MY 안의 "내 정보 보기" 모달이 이 API를 호출해 보여준다**(04 §4.2, 처리방침 제7조). API 자체는 바뀌지 않는다.
 
 | 메서드 + 경로 | 하는 일 |
 |---|---|
@@ -379,7 +384,7 @@ HTTP API로 노출하지 않는 내부 작업이다. 이 절은 목록·주기·
 
 | 항목 | 결정 |
 |---|---|
-| 개인정보 열람 | 화면 없이 `GET /me?include=personal` API로만 제공. 처리방침 작성 시 법적 확인 |
+| 개인정보 열람 | `GET /me?include=personal`로 제공. (2026-11-16 변경: 화면 없음 → MY의 "내 정보 보기" 모달에서 표시) |
 | 본인 글 신고 | 막는다. 403 `CANNOT_REPORT_OWN_REVIEW` |
 | 이의 접수 이력 | MVP에서는 `reason_memo`에 기록. 별도 테이블은 필요해질 때 |
 | 관리자 차단 | **MVP에 없다.** §1.3의 세션 삭제 대상은 탈퇴뿐이다 |
@@ -491,21 +496,22 @@ HTTP API로 노출하지 않는 내부 작업이다. 이 절은 목록·주기·
 | 이름 | 모양 | 규칙 |
 |---|---|---|
 | `Me` | `{ "code", "nickname", "is_admin": bool, "post_count": int, "received_recommend_count": int }` | `code`는 내 공개 프로필 코드(`/users/{code}` 링크용). 탈퇴 모달의 "소개한 사람들(N)"은 `post_count`다 |
-| `MePersonal` | `Me` + `{ "personal": { "provider", "joined_at", "last_login_at", "consents": [ { "terms_version", "privacy_version", "agreed_at", "route" } ] } }` | `GET /me?include=personal`에서만. `provider` = `kakao`\|`naver`\|`google` 중 가입한 곳, `route` = `write`\|`recommend`\|`my`. 이메일·프로필 이미지는 애초에 저장하지 않는다(ADR 0010) |
+| `MePersonal` | `Me` + `{ "personal": { "provider", "joined_at", "last_login_at", "consents": [ { "terms_version", "privacy_version", "agreed_at", "route" } ] } }` | `GET /me?include=personal`에서만. `provider` = `kakao`(ADR 0028), `route` = `write`\|`recommend`\|`my`. 이메일·프로필 이미지는 애초에 저장하지 않는다(ADR 0010) |
 | `TagAnswer` | `{ "question_code": string, "choice_codes": string[] }` | 쓰기 요청용. `choice_codes`의 **배열 순서가 선택 순서**(`taganswer.selection_sequence`)다. 대표 태그 판정(ADR 0013)이 이 순서를 쓴다 |
 | `MyReviewCard` | `ReviewCard` + `{ "updated_at" }` | `GET /me/reviews`의 항목. 수정·삭제 버튼은 화면이 항상 노출하므로 `is_mine`은 싣지 않는다 |
+| `RecommendedReviewCard` | `ReviewCard` + `{ "recommended_at" }` | `GET /me/recommended-reviews`의 항목(2026-11-16). `recommended_at`은 내가 추천한 시각이자 정렬 기준. 모두 내가 추천한 글이므로 `my_recommended`는 싣지 않는다 |
 | `RecommendState` | `{ "recommend_count": int, "my_recommended": bool }` | 추천·추천 취소의 응답. 화면이 카운트를 즉시 반영하는 근거 |
 
 #### 4.3.2 로그인·로그아웃
 
 | 메서드 + 경로 | 요청 | 응답 | 오류 |
 |---|---|---|---|
-| `GET /auth/{provider}/login` | `provider`(`kakao`\|`naver`\|`google`), `trigger`(`write`\|`recommend`\|`my`, 선택), `return_to`(서비스 내부 경로, 선택) | **302** 공급자 인증 화면. `trigger`·`return_to`는 OAuth `state`에 실어 운반하고 저장하지 않는다 | 400 `INVALID_PARAMETER`(없는 공급자·`trigger`·외부 주소 `return_to`), 409 `ALREADY_LOGGED_IN` |
+| `GET /auth/{provider}/login` | `provider`(`kakao`), `trigger`(`write`\|`recommend`\|`my`, 선택), `return_to`(서비스 내부 경로, 선택) | **302** 공급자 인증 화면. `trigger`·`return_to`는 OAuth `state`에 실어 운반하고 저장하지 않는다 | 400 `INVALID_PARAMETER`(없는 공급자·`trigger`·외부 주소 `return_to`), 409 `ALREADY_LOGGED_IN` |
 | `POST /auth/{provider}/callback` | `{ "code": string, "state": string }` — 사용자가 취소했으면 `code` 대신 `{ "error": string, "state": string }` | 200 `{ "me": Me, "is_new_user": bool, "trigger": string \| null, "return_to": string \| null }` + 세션 쿠키 | 400 `INVALID_STATE`, 400 `LOGIN_CANCELLED`, 409 `ALREADY_LOGGED_IN`, 502 `PROVIDER_ERROR` |
 | `POST /auth/logout` | — | 204, 세션 삭제·쿠키 만료 | 401 `LOGIN_REQUIRED` |
 
 - 처리 순서와 가입·동의 이력 기록은 §3.1·§3.2가 정한 대로다. `is_new_user`는 화면이 "닉네임이 자동으로 정해졌어요, 바꿀 수 있어요" 안내(C1)를 보여줄지 판단하는 값이다.
-- `provider`는 시연에서 3종을 보였다. **C1은 공급자 1개(카카오 우선)로 시작한다고 정했으므로**, 9단계에서 공급자가 정해지면 이 열거를 줄인다.
+- `provider`는 **카카오 1개로 확정**했다(2026-11-16, ADR 0028). 시연은 3종을 보이지만 구현은 `kakao`만 받는다. 네이버·구글을 출시 후 추가할 때는 열거에 값만 더하면 된다(기존 회원 영향 없음). 콜백(`POST /auth/{provider}/callback`)도 같다.
 - **로그인 후 하려던 행동은 서버가 대신 실행하지 않는다.** 복귀 정보를 저장하지 않는 원칙(§2.3) 때문이다. 화면이 콜백 응답의 `trigger`·`return_to`로 복귀한 뒤 이어서 호출한다.
   - 추천을 누르려던 경우: `return_to`는 그 시향기 상세이고, 화면이 `POST /reviews/{slug}/recommendation`을 이어서 호출한다. 이미 추천한 상태였다면 409 `ALREADY_RECOMMENDED`가 오는데, 화면은 **성공으로 취급**한다.
   - 시향기 쓰기를 누르려던 경우: `return_to`는 향수가 지정된 작성 화면(예: `/write?perfume={slug}`)이다. 서버 호출은 없고, 화면이 §4.2의 `GET /perfumes/{slug}`로 `my_review_slug`를 확인한다.
@@ -518,6 +524,7 @@ HTTP API로 노출하지 않는 내부 작업이다. 이 절은 목록·주기·
 | `GET /me` | `include=personal`(선택) | 비로그인이면 200 `null`. 로그인이면 `Me`, `include=personal`이면 `MePersonal` | 400 `INVALID_PARAMETER`(알 수 없는 `include` 값) |
 | `PATCH /me` | `{ "nickname": string }` | 200 `Me` | 401 `LOGIN_REQUIRED`, 400 `NICKNAME_INVALID`, 400 `NICKNAME_RESERVED`, 409 `NICKNAME_TAKEN` |
 | `GET /me/reviews` | `page`, `size` | 200 `Page<MyReviewCard>` — 최신순 | 401 `LOGIN_REQUIRED` |
+| `GET /me/recommended-reviews` | `page`, `size` | 200 `Page<RecommendedReviewCard>` — 추천 시각 최신순 | 401 `LOGIN_REQUIRED` |
 | `DELETE /me` | `confirm=true` | 204, 세션 쿠키 만료 (§3.4) | 401 `LOGIN_REQUIRED`, 400 `CONFIRMATION_REQUIRED` |
 
 - **닉네임 규칙**(확정 사항): 앞뒤 공백을 제거한 뒤 2~12자, 한글·영문·숫자·공백만 허용한다. `user_` 접두사는 익명 표시명 전용이라 대소문자 구분 없이 금지한다(ADR 0008·0012).
@@ -525,6 +532,7 @@ HTTP API로 노출하지 않는 내부 작업이다. 이 절은 목록·주기·
   - 금칙어(욕설) 필터는 MVP에 두지 않는다. 도입하려면 AI가 아닌 고정 목록 방식으로, 새 결정을 거친다.
 - `GET /me`는 모든 화면이 호출하므로 가볍게 유지한다(§3.3). 탈퇴 직후에는 세션이 없으므로 `null`이다.
 - `DELETE /me`의 처리는 §3.4가 정한 대로이며, 갱신하는 집계는 없다(§4.6).
+- **`GET /me/recommended-reviews`**(나만의 ♥ 모음, 2026-11-16 추가 — 01 M13·02 D5): 본인 세션의 추천만 돌려준다. **다른 사용자의 추천 목록을 조회하는 경로는 두지 않는다**(공개 프로필 `GET /users/{code}`에도 싣지 않음). 소프트 삭제된 시향기는 `items`와 `total_items`에서 모두 빠지고(ADR 0011), 작성자가 탈퇴한 글은 `Author.code: null`·익명 표시명으로 포함된다(ADR 0008). `total_items`가 MY 탭의 개수다. 집계 컬럼을 두지 않고 `recommendation` 테이블을 그대로 조회한다 — ERD 변경 없음. 추천 취소는 목록이 아니라 시향기 상세의 `DELETE …/recommendation`으로 한다.
 
 #### 4.3.4 시향기 쓰기·수정·삭제
 
@@ -581,7 +589,7 @@ HTTP API로 노출하지 않는 내부 작업이다. 이 절은 목록·주기·
 
 | 시연 동작 | 대응 API |
 |---|---|
-| 로그인 바텀시트(공급자 버튼 3종, 동의 고지) → 복귀 | `GET /auth/{provider}/login` → `POST /auth/{provider}/callback`(§4.3.2) |
+| 로그인 바텀시트(시연은 공급자 버튼 3종, 구현은 카카오 1개 — ADR 0028, 동의 고지) → 복귀 | `GET /auth/{provider}/login` → `POST /auth/{provider}/callback`(§4.3.2) |
 | 로그인 후 추천이 자동 반영 / 빈 작성 화면 진입 | 화면이 `return_to`로 복귀 후 `POST …/recommendation` 호출 / 서버 호출 없음 |
 | "시향기 쓰기" → 이미 쓴 향수면 "이미 소개했어요" 모달 → "내 글 보기" | `GET /perfumes/{slug}`·`GET /perfumes?q=`의 `my_review_slug`(§4.2) |
 | 작성 폼의 향수 검색(최대 8개 표시), "변경" 버튼 | `GET /perfumes?q=` — `size=8`로 호출해도 된다 |
@@ -594,13 +602,14 @@ HTTP API로 노출하지 않는 내부 작업이다. 이 절은 목록·주기·
 | 신고 사유 선택 → "신고가 접수됐어요" | `POST /reviews/{slug}/reports` |
 | 탈퇴 회원 글: 표시명 `user_NNNNNN`, 링크 없음, 프로필 404 | `Author.code: null`(§4.1), `GET /users/{code}` 404 |
 | MY: 닉네임 변경(최대 12자), 받은 추천, 내 목록, 로그아웃, 탈퇴 | `PATCH /me`, `GET /me`, `GET /me/reviews`, `POST /auth/logout`, `DELETE /me` |
+| MY: 나만의 ♥ 모음 탭 · 내 정보 보기 모달 (2026-11-16 — 시연 데모에는 없음) | `GET /me/recommended-reviews`, `GET /me?include=personal` |
 | 프로필: "소개한 사람"·"받은 추천" | `GET /users/{code}`의 `post_count`·`received_recommend_count` |
 | 정책 3종 화면 | `GET /policies/{type}`(약관·처리방침), 도움말은 정적 |
 
 시연과 명세가 **어긋나는 곳**은 다음 세 가지이며, 모두 명세 쪽이 맞다(시연은 단순화).
 
 1. 시연의 추천은 버튼 하나의 토글이지만 API는 `POST`·`DELETE` 분리다(§4.3.6).
-2. 시연은 공급자 3종을 보이지만 C1은 1개로 시작한다(§4.3.2).
+2. 시연은 공급자 3종을 보이지만 구현은 카카오 1개다(§4.3.2, ADR 0028).
 3. 시연은 임시저장을 상태 객체에만 두는데, 실제 구현에서도 서버 API 없이 브라우저 저장소를 쓴다(§4.3.5) — 브라우저 저장소는 지워질 수 있으므로 "복원 보장"이 아니라 "가능한 한 복원"이다.
 
 #### 4.3.8 이 절에서 새로 정한 결정 (확정)
@@ -806,7 +815,7 @@ HTTP API로 노출하지 않는 내부 작업이다. 이 절은 목록·주기·
 | ✅ 관리자 시향기 삭제의 사유 메모 — `DELETE` JSON 본문(게이트웨이가 막으면 `POST …/deletion`) · 닉네임 에러 코드 `NICKNAME_INVALID`·`NICKNAME_RESERVED`·`NICKNAME_TAKEN` · 시향기가 달린 향수 삭제 — **차단**(`PERFUME_HAS_REVIEWS`) (§4.3.3·§4.4.2·§4.4.3) | §4 |
 | ✅ 응답 필드 요구 — 시향기 카드·`image` null 규칙 (§4.1에 반영) | — |
 | 이미지·로고 파일 전달 방식이 `PUT /admin/perfumes/{slug}/image`·`POST·PATCH /admin/brands`의 요청 형식을 정한다 (필드 이름만 확정, §4.4.3·§4.4.4) | 9단계 |
-| 소셜 로그인 공급자 열거(`kakao`\|`naver`\|`google`)를 C1의 "1개로 시작"에 맞게 줄이기 (§4.3.2) | 9단계 |
+| ✅ 소셜 로그인 공급자 열거를 `kakao` 하나로 줄임 — 카카오 1개로 확정 (§4.3.2, md·yaml) | 2026-11-16 완료 (ADR 0028) |
 | ✅ 02 E2 AC의 "시향기가 달린 향수 삭제 시 경고"를 "차단(시향기 수 안내)"으로 개정 — 02 E2·03 §관리자 카탈로그·04 §5·05 §3.5에 반영 | 2026-11-12 완료 |
 | ✅ ADR 0023을 확정 문서에 반영 — 02 B2·D1, 04 §2.7·§4.1, 05 E9·§2.7·§3.2, 06 §3·§4 (`post`의 (`user_id`, `perfume_id`) 중복 방지, 삭제분 제외 조건). 구현 방식은 9단계 | 2026-11-12 완료 |
 | ✅ 02 B1의 "추천순 기본·최신순 전환", "무한 스크롤 또는 더보기"를 04 확정 2·10에 맞춰 정리 | 2026-11-12 완료 |

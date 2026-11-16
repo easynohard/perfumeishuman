@@ -34,4 +34,7 @@
 | [0022](./0022-defer-reconsent-from-mvp.md) | 약관 개정 시 재동의는 MVP에서 제외, 향후 도입 설계안 보존 | Accepted |
 | [0023](./0023-one-review-per-user-per-perfume.md) | 한 사람은 한 향수에 시향기를 1개만 쓸 수 있다 | Accepted |
 | [0024](./0024-color-system-white-cobalt-black.md) | 색상 체계는 흰색·코발트 블루·검정으로 제한 | Accepted |
-| [0025](./0025-typeface-and-icon-set.md) | 서체는 Pretendard, 아이콘은 Lucide | Proposed (8단계 승인 대기) |
+| [0025](./0025-typeface-and-icon-set.md) | 서체는 Pretendard, 아이콘은 Lucide | Accepted |
+| [0026](./0026-nextjs-typescript-single-codebase.md) | 화면과 API를 Next.js + TypeScript 한 코드베이스로 만든다 | Accepted |
+| [0027](./0027-hosting-vercel-db-supabase-seoul.md) | 호스팅은 Vercel, DB는 Supabase(PostgreSQL) — 둘 다 서울 리전 | Accepted |
+| [0028](./0028-login-kakao-better-auth-session.md) | 로그인은 카카오 1개·Better Auth·DB 세션(활동 없으면 20분 만료)·Origin 검사 | Accepted |

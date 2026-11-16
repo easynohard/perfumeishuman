@@ -1,6 +1,6 @@
 # 0025. 서체는 Pretendard, 아이콘은 Lucide로 한다
 
-- Status: **Proposed** (2026-11-12 — 8단계 UI 디자인을 위임받아 작성한 초안. 사용자 승인 시 Accepted. 라이선스는 [license-audit.md](../quality/license-audit.md) 1차 감사 참조)
+- Status: **Accepted** (2026-11-16 — 8단계 승인, 2026-11-12 위임 초안 원안대로. 라이선스는 [license-audit.md](../quality/license-audit.md) 1차 감사 참조)
 - 관련 문서: [08-ui-design.md](../08-ui-design.md) §2.2·§3, [quality/license-audit.md](../quality/license-audit.md)
 
 ## Context
