@@ -45,3 +45,4 @@
 | [0033](./0033-test-strategy-and-ci-quality-gates.md) | 테스트·품질 게이트 — 검사 5종을 개발 순서에 맞춰 단계적으로 켜고, 핵심 규칙 테스트는 처음부터 필수 | Accepted |
 | [0034](./0034-dependency-license-policy.md) | 의존성 라이선스 정책 — 허용형만, 조건부는 예외 등록, GPL·AGPL·상업 제한·불명은 금지 | Accepted |
 | [0035](./0035-privacy-outsourcing-and-overseas-transfer.md) | 처리위탁은 Vercel·Supabase(카카오는 위탁 아님), 국외 이전 보수적 공개, 접속 로그 최대 7일 | Accepted |
+| [0036](./0036-monthly-cost-and-paid-plan-timing.md) | 출시 시 Supabase Pro 전환, Vercel은 수익화 전까지 Hobby — 월 비용 0원 → 약 3.7만 원 → 약 6.5만 원 | Accepted |
