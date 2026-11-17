@@ -5,6 +5,8 @@
 > 개정: 2026-11-16 — 개인정보 열람을 "화면 없이 API로만"에서 "MY의 '내 정보 보기' 모달에서 표시"로 변경(§3.3·§3.9). API는 변경 없음
 > 개정: 2026-11-16 — 소셜 로그인 공급자를 카카오 1개로 확정: `provider` 열거를 `kakao`로 축소(§4.1 `MePersonal`·§4.3.2·시연 대조표·부록 A, yaml 3곳). 근거: [ADR 0028](./adr/0028-login-kakao-better-auth-session.md)
 > 개정: 2026-11-16 — **`GET /me/recommended-reviews`(나만의 ♥ 모음, 01 M13·02 D5)** 추가: §2 MY 표, §4.1 `RecommendedReviewCard`, §4.3.3, 시연 대조표, yaml(39경로)
+> 개정: 2026-11-17 — 부록 A의 이미지·로고 업로드 방식·파일 전달 방식을 완료로 표시(multipart, Supabase Storage 보관함 2개, 캐시 1시간). 본문(§3.6·§4.4.3·§4.4.4)과 yaml의 "9단계" 표시는 아직 그대로. 근거: [ADR 0029](./adr/0029-image-storage-supabase-two-buckets.md)
+> 개정: 2026-11-17 — `POST /reviews` 중복 작성(§4.3)의 동시 요청 처리를 확정 표시: 부분 유니크 인덱스 + DB 거절을 409로 변환. API 동작 변경 없음. 근거: [ADR 0030](./adr/0030-one-review-rule-partial-unique-index.md)
 > 근거 문서: [02-user-stories.md](./02-user-stories.md) · [03-sitemap-ia.md](./03-sitemap-ia.md) · [04-wireframes.md](./04-wireframes.md) · [05-data-model.md](./05-data-model.md) · [06-erd.md](./06-erd.md)
 > 관련 ADR: [0005](./adr/0005-seo-slug-urls.md) · [0008](./adr/0008-anonymized-retention-on-withdrawal.md) · [0010](./adr/0010-minimal-personal-data-collection.md) · [0011](./adr/0011-soft-delete-reviews.md) · [0012](./adr/0012-identifier-formats.md) · [0014](./adr/0014-login-before-write-entry.md) · [0016](./adr/0016-aggregate-update-and-soft-delete-scope.md) · [0017](./adr/0017-api-design-principles.md) · [0018](./adr/0018-list-page-size.md) · [0019](./adr/0019-accord-naming-unification.md) · [0020](./adr/0020-reconsent-on-policy-revision.md) · [0021](./adr/0021-admin-report-id-exception.md) · [0022](./adr/0022-defer-reconsent-from-mvp.md) · [0023](./adr/0023-one-review-per-user-per-perfume.md)
 
@@ -552,7 +554,7 @@ HTTP API로 노출하지 않는 내부 작업이다. 이 절은 목록·주기·
 | `perfume_slug` | 존재하는 향수 | 404 `PERFUME_NOT_FOUND` |
 
 - 화면의 "부족한 항목: 나이대 · 성격" 안내(시연의 `missing()`)는 클라이언트 검증이 먼저 막고, 서버는 최종 방어선이다. 서버의 `fields`가 같은 항목명을 가리키면 화면이 같은 위치로 스크롤할 수 있다.
-- **중복 작성**(ADR 0023): 같은 사용자가 같은 향수에 소프트 삭제되지 않은 시향기를 이미 가졌으면 409 `ALREADY_REVIEWED`. 화면은 이 호출에 앞서 `my_review_slug`로 이미 안내했을 것이므로 동시 요청·우회에 대한 최종 방어선이다. 동시에 두 요청이 들어와도 한 건만 만들어지도록 서버가 보장해야 한다(소프트 삭제 제외 조건 때문에 단순 유니크 제약이 불가능 — ADR 0023, 구현은 9~10단계).
+- **중복 작성**(ADR 0023): 같은 사용자가 같은 향수에 소프트 삭제되지 않은 시향기를 이미 가졌으면 409 `ALREADY_REVIEWED`. 화면은 이 호출에 앞서 `my_review_slug`로 이미 안내했을 것이므로 동시 요청·우회에 대한 최종 방어선이다. 동시에 두 요청이 들어와도 한 건만 만들어지도록 서버가 보장한다 — **삭제되지 않은 행에만 거는 부분 유니크 인덱스로 막고, DB 거절은 409 `ALREADY_REVIEWED`로 바꿔 응답한다**(ADR 0023, [ADR 0030](./adr/0030-one-review-rule-partial-unique-index.md)).
 - **작성자는 세션에서 정한다.** 요청 본문의 작성자 정보는 받지 않는다.
 - **수정 시 향수는 바꿀 수 없다**(04 §3.2). 수정 화면은 향수 "변경" 버튼을 숨긴다. `tags`를 보내면 **전체를 교체**하며(부분 병합 아님) 같은 검증을 거친다. `updated_at`만 갱신하고 슬러그·추천 수·작성 시각은 그대로다.
 - **삭제**는 소프트 삭제 + 처리 주체 `본인`이다(ADR 0011). 본인 삭제에는 사유 메모를 받지 않는다. 삭제 즉시 모든 목록·상세에서 사라지며(보관 30일), 삭제 후 같은 향수에 새로 쓸 수 있다(ADR 0023, 가정). 같은 글을 다시 삭제하면 404다.
@@ -809,12 +811,12 @@ HTTP API로 노출하지 않는 내부 작업이다. 이 절은 목록·주기·
 | ✅ 시향기 소프트 삭제 복구 — **MVP에는 없음** (2026-10-28 확정). 도입하려면 새 ADR | — |
 | ✅ 게스트 신고 중복 방지 — 브라우저 로컬 + 대상별 총량 한도(ADR 0010), 서버는 총량 초과 시 429. 회원은 (신고자, 대상) 중복을 서버가 409로 막음 (2026-10-28 확정). 한도 수치는 구현 단계 | §4 |
 | ✅ 약관 개정 시 재동의 — **MVP 제외** (2026-10-28, ADR 0022). 향후 도입 설계안은 ADR 0020·0022에 보존 | — |
-| 이미지·로고 파일 업로드 방식 — 서버가 파일을 직접 받을지(multipart), 저장소로 직접 올리는 임시 주소를 발급할지. serverless 제약과 엮임 | 9단계 기술 스택 (§4에 미결로 명시) |
+| ✅ 이미지·로고 파일 업로드 방식 — **서버가 직접 받음(multipart)**, 저장은 Supabase Storage 공개·비공개 보관함 2개, 비공개 시 공개 보관함에서 삭제 + 캐시 1시간 | 2026-11-17 완료 ([ADR 0029](./adr/0029-image-storage-supabase-two-buckets.md)) |
 | 검색 섹션별 상위 개수 — 5개로 시작 | 구현 단계 조정 가능 |
 | ✅ 관리자 삭제분 열람 — `GET /admin/reviews/{slug}` 사용 (§4.4.2) | §4 |
 | ✅ 관리자 시향기 삭제의 사유 메모 — `DELETE` JSON 본문(게이트웨이가 막으면 `POST …/deletion`) · 닉네임 에러 코드 `NICKNAME_INVALID`·`NICKNAME_RESERVED`·`NICKNAME_TAKEN` · 시향기가 달린 향수 삭제 — **차단**(`PERFUME_HAS_REVIEWS`) (§4.3.3·§4.4.2·§4.4.3) | §4 |
 | ✅ 응답 필드 요구 — 시향기 카드·`image` null 규칙 (§4.1에 반영) | — |
-| 이미지·로고 파일 전달 방식이 `PUT /admin/perfumes/{slug}/image`·`POST·PATCH /admin/brands`의 요청 형식을 정한다 (필드 이름만 확정, §4.4.3·§4.4.4) | 9단계 |
+| ✅ 이미지·로고 파일 전달 방식 — `PUT /admin/perfumes/{slug}/image`·`POST·PATCH /admin/brands`는 multipart/form-data (필드 이름은 §4.4.3·§4.4.4 그대로) | 2026-11-17 완료 (ADR 0029) |
 | ✅ 소셜 로그인 공급자 열거를 `kakao` 하나로 줄임 — 카카오 1개로 확정 (§4.3.2, md·yaml) | 2026-11-16 완료 (ADR 0028) |
 | ✅ 02 E2 AC의 "시향기가 달린 향수 삭제 시 경고"를 "차단(시향기 수 안내)"으로 개정 — 02 E2·03 §관리자 카탈로그·04 §5·05 §3.5에 반영 | 2026-11-12 완료 |
 | ✅ ADR 0023을 확정 문서에 반영 — 02 B2·D1, 04 §2.7·§4.1, 05 E9·§2.7·§3.2, 06 §3·§4 (`post`의 (`user_id`, `perfume_id`) 중복 방지, 삭제분 제외 조건). 구현 방식은 9단계 | 2026-11-12 완료 |

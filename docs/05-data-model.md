@@ -5,6 +5,7 @@
 > 근거 문서: [01-problem-definition-scope.md](./01-problem-definition-scope.md) · [02-user-stories.md](./02-user-stories.md) · [03-sitemap-ia.md](./03-sitemap-ia.md) · [04-wireframes.md](./04-wireframes.md)
 > 관련 ADR: [0003](./adr/0003-controlled-vocabulary-tags.md) · [0005](./adr/0005-seo-slug-urls.md) · [0007](./adr/0007-reduce-tag-questions-to-two.md) · [0008](./adr/0008-anonymized-retention-on-withdrawal.md) · [0009](./adr/0009-perfume-image-sourcing-and-takedown.md) · **[0010](./adr/0010-minimal-personal-data-collection.md)** · **[0011](./adr/0011-soft-delete-reviews.md)** (이번 단계에서 신규 작성) · [0013](./adr/0013-age-tag-multi-select.md) (2026-09-13 추가)
 > 부가 산출물(품질·법무 트랙): §5 개인정보 항목표 · §6 이미지 권리 필드
+> 개정: 2026-11-17 — 처리위탁 목록 미결 항목을 완료로 표시(수탁자 Vercel·Supabase, 카카오는 위탁 아님). 근거: [ADR 0035](./adr/0035-privacy-outsourcing-and-overseas-transfer.md)
 > 개정: 2026-11-16 — §3.3 MY에 "나만의 ♥ 모음"(내가 추천한 시향기 목록, D5·M13) 표시·파생 항목 추가. E13 추천의 기존 필드(사용자·시향기·시각)로 충족되어 **엔티티·필드 변경 없음**(06 ERD 영향 없음)
 > 개정: 2026-11-12 — 7단계 확정 반영: 1인 1향수 1시향기(E9 제약, §2.7·§3.2 이면 항목), 시향기 달린 향수 삭제 차단(§3.5 이면). 근거: [ADR 0023](./adr/0023-one-review-per-user-per-perfume.md)
 > 개정: 2026-10-28 — 계열의 영문 이름을 `accord`로 통일: 화면 URL `/notes` → `/accords`, `/notes/:slug` → `/accords/:slug`. 근거: [ADR 0019](./adr/0019-accord-naming-unification.md) (§2.3·§2.6·§3.8)
@@ -303,7 +304,7 @@
 
 ### 5.4 제3자 제공·처리위탁
 
-MVP 시점 제3자 제공 없음. 소셜 로그인 공급자와 호스팅·데이터베이스 제공자는 **처리위탁**에 해당하며, 공급자·리전 확정은 9단계다. 처리방침의 위탁 목록은 9단계 결과를 받아 8단계에서 확정한다.
+MVP 시점 제3자 제공 없음. 소셜 로그인 공급자와 호스팅·데이터베이스 제공자는 **처리위탁**에 해당하며, 공급자·리전 확정은 9단계다. 처리방침의 위탁 목록은 9단계 결과를 받아 8단계에서 확정한다. → **2026-11-17 확정**: 수탁자는 호스팅(Vercel)·DB(Supabase) 두 곳이고, 소셜 로그인 공급자(카카오)는 회원번호를 제공하는 쪽이라 위탁으로 보지 않는다(출시 전 확인 항목). 국외 이전도 처리방침 제6조에 공개 — [ADR 0035](./adr/0035-privacy-outsourcing-and-overseas-transfer.md)
 
 ---
 
@@ -360,7 +361,7 @@ MVP 시점 제3자 제공 없음. 소셜 로그인 공급자와 호스팅·데�
 | **삭제된 글의 슬러그가 유니크 제약을 계속 점유하는 문제** | ADR 0011 Consequences |
 | **보관기간 경과분 완전 삭제 배치** (실제 구현은 10단계) | ADR 0011 §3 |
 | **약관 개정 공지 방식을 "서비스 내 게시"로 약관에 명시** (8단계) — 이메일을 수집하지 않으므로 F2 AC가 이 조문에 의존한다 | ADR 0010 Consequences |
-| 처리위탁 목록 (호스팅·DB·소셜 공급자) | 9단계 결과를 8단계 처리방침에 반영 |
+| ✅ 처리위탁 목록 (호스팅·DB·소셜 공급자) — 처리방침 제6조에 반영 | 2026-11-17 완료 ([ADR 0035](./adr/0035-privacy-outsourcing-and-overseas-transfer.md)) |
 | 인프라 접속 로그 보존기간 | 9·10단계 |
 
 ## 8. 결정 완료 (2026-09-11 사용자 승인)

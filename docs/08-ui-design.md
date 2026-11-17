@@ -4,6 +4,9 @@
 > 작성일: 2026-11-12 · 상태: **✅ 확정 — 8단계 완료 (2026-11-16 승인: 본 산출물 §9 결정 9건 원안대로 + 부가 산출물 4종)** (방향 지정: 흰 배경 + 코발트 블루 + 검정, 2026-11-12)
 > 근거 문서: [03-sitemap-ia.md](./03-sitemap-ia.md) · [04-wireframes.md](./04-wireframes.md) · [01-problem-definition-scope.md](./01-problem-definition-scope.md)(N5 FCP 2.5초 · N10 WCAG AA) · 시연 데모 [`ppt/index.html`](../ppt/index.html)
 > 관련 ADR: [0024 색상 체계](./adr/0024-color-system-white-cobalt-black.md) · [0025 서체와 아이콘](./adr/0025-typeface-and-icon-set.md) · [0009 이미지 폴백](./adr/0009-perfume-image-sourcing-and-takedown.md)
+> 개정: 2026-11-17 — 서체·아이콘 번들 구성 확정 반영(§2 서체, §3 아이콘, §10): Pretendard 공식 동적 서브셋 패키지 + `lucide-react`. 아이콘 "SVG 스프라이트"는 ADR 0031로 대체. 근거: [ADR 0031](./adr/0031-font-icon-bundling-official-packages.md)
+> 개정: 2026-11-17 — CSS 방식 확정 반영(§2 도입부, §10): Tailwind CSS, 테마에는 08 토큰만 등록(기본 색 목록 제거). 근거: [ADR 0032](./adr/0032-css-tailwind-with-token-only-theme.md)
+> 개정: 2026-11-17 — §10 처리위탁·로그 보관기간 항목 완료 표시. 근거: [ADR 0035](./adr/0035-privacy-outsourcing-and-overseas-transfer.md)
 > 시각 확인: [`docs/design/style-guide.html`](./design/style-guide.html) — 이 문서의 토큰·컴포넌트를 브라우저에서 그대로 볼 수 있다.
 
 ## 0. 이 단계의 산출물
@@ -31,7 +34,7 @@ CLAUDE.md 규칙에 따라 본 산출물과 부가 산출물이 **모두 승인�
 
 ## 2. 디자인 토큰
 
-구현에서는 CSS 변수로 그대로 옮긴다(이름 고정). 값은 `style-guide.html`의 `:root`와 동일하다.
+구현에서는 CSS 변수로 그대로 옮긴다(이름 고정). 값은 `style-guide.html`의 `:root`와 동일하다. 이 변수를 Tailwind 테마에 연결해 쓰고(`--cobalt` → `bg-cobalt`), 여기 없는 색은 테마에 등록하지 않는다([ADR 0032](./adr/0032-css-tailwind-with-token-only-theme.md)).
 
 ### 2.1 색상 — [ADR 0024](./adr/0024-color-system-white-cobalt-black.md)
 
@@ -53,7 +56,7 @@ CLAUDE.md 규칙에 따라 본 산출물과 부가 산출물이 **모두 승인�
 
 ### 2.2 서체 — [ADR 0025](./adr/0025-typeface-and-icon-set.md)
 
-- **Pretendard Variable** (SIL OFL 1.1) 셀프 호스팅, `woff2` 동적 서브셋, `font-display: swap`.
+- **Pretendard Variable** (SIL OFL 1.1) 셀프 호스팅, `woff2` 동적 서브셋, `font-display: swap`. 구성: npm `pretendard` 패키지의 공식 동적 서브셋 CSS를 같은 출처에서 제공, 장기 캐시([ADR 0031](./adr/0031-font-icon-bundling-official-packages.md)).
 - 폴백: `-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif`.
 - 숫자(추천 수·글자 수)는 `font-variant-numeric: tabular-nums`. 별도 모노스페이스 서체는 쓰지 않는다.
 - 한글 줄바꿈: `word-break: keep-all; overflow-wrap: anywhere`. 100자 서술이 어절 중간에서 끊기지 않게 한다.
@@ -107,7 +110,7 @@ CLAUDE.md 규칙에 따라 본 산출물과 부가 산출물이 **모두 승인�
 
 ## 3. 아이콘·이미지
 
-- 아이콘: **Lucide** (ISC), 24px 격자, 선 두께 1.75, `currentColor`. SVG 스프라이트로 번들(필요한 것만) — 외부 CDN 호출 없음.
+- 아이콘: **Lucide** (ISC), 24px 격자, 선 두께 1.75, `currentColor`. npm `lucide-react`에서 쓰는 아이콘만 불러와 인라인 SVG로 포함 — 외부 CDN 호출 없음([ADR 0031](./adr/0031-font-icon-bundling-official-packages.md), 0025의 "스프라이트"를 대체).
 - 사용 아이콘(초기 세트): `search` `pen-line` `user-round` `heart`(추천) `share` `ellipsis` `chevron-left` `chevron-right` `x` `check` `triangle-alert` `info` `shuffle`(질문 카드) `log-out` `trash-2` `eye-off`(관리자 비공개) `shield`(관리자).
 - **추천 아이콘은 하트가 아니라 손뼉·엄지 같은 평가 암시를 피한다** — 하트는 "좋아요"로 읽혀 별점 계열과 거리가 멀고 친근하다. 채움(추천함)/윤곽(안 함)으로만 구분한다.
 - 향수 이미지는 **정사각 투명 누끼**, 흰 바탕 위에 그대로 둔다(그림자·배경 박스 없음). 로고·일러스트·일반 사진은 MVP에 없다.
@@ -275,8 +278,8 @@ CLAUDE.md 규칙에 따라 본 산출물과 부가 산출물이 **모두 승인�
 
 | 항목 | 넘길 곳 |
 |---|---|
-| 서체·아이콘 파일의 실제 번들·서브셋 구성, 프런트엔드 프레임워크와 CSS 방식(토큰 → 변수/유틸리티) | 9단계 |
+| ✅ 서체·아이콘 파일의 실제 번들·서브셋 구성 — 2026-11-17 [ADR 0031](./adr/0031-font-icon-bundling-official-packages.md) / ✅ 프런트엔드 프레임워크 — Next.js([ADR 0026](./adr/0026-nextjs-typescript-single-codebase.md)) / ✅ CSS 방식 — Tailwind CSS, 테마에 08 토큰만 등록([ADR 0032](./adr/0032-css-tailwind-with-token-only-theme.md)) | 9단계 — 2026-11-17 완료 |
 | 의존성(서체·아이콘 포함) 라이선스 정책 ADR | 9단계 (라이선스 감사 2차) |
-| 처리위탁 목록·인프라 로그 보관기간 → 개인정보처리방침 확정 | 9단계 후 |
+| ✅ 처리위탁 목록·인프라 로그 보관기간 → 처리방침 제1조·제6조에 반영(로그 최대 7일). 남은 `[ ]`는 출시 전 항목 | 2026-11-17 완료 ([ADR 0035](./adr/0035-privacy-outsourcing-and-overseas-transfer.md)) |
 | 시연 데모(`ppt/index.html`)는 디자인 검증용이며 구현 코드가 아니다 | — |
 | Lighthouse·접근성 자동 검사 기준값 | 10단계 |

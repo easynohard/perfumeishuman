@@ -34,7 +34,14 @@
 | [0022](./0022-defer-reconsent-from-mvp.md) | 약관 개정 시 재동의는 MVP에서 제외, 향후 도입 설계안 보존 | Accepted |
 | [0023](./0023-one-review-per-user-per-perfume.md) | 한 사람은 한 향수에 시향기를 1개만 쓸 수 있다 | Accepted |
 | [0024](./0024-color-system-white-cobalt-black.md) | 색상 체계는 흰색·코발트 블루·검정으로 제한 | Accepted |
-| [0025](./0025-typeface-and-icon-set.md) | 서체는 Pretendard, 아이콘은 Lucide | Accepted |
+| [0025](./0025-typeface-and-icon-set.md) | 서체는 Pretendard, 아이콘은 Lucide | Accepted (아이콘 "스프라이트" 번들 방식은 0031이 대체) |
 | [0026](./0026-nextjs-typescript-single-codebase.md) | 화면과 API를 Next.js + TypeScript 한 코드베이스로 만든다 | Accepted |
 | [0027](./0027-hosting-vercel-db-supabase-seoul.md) | 호스팅은 Vercel, DB는 Supabase(PostgreSQL) — 둘 다 서울 리전 | Accepted |
 | [0028](./0028-login-kakao-better-auth-session.md) | 로그인은 카카오 1개·Better Auth·DB 세션(활동 없으면 20분 만료)·Origin 검사 | Accepted |
+| [0029](./0029-image-storage-supabase-two-buckets.md) | 이미지·로고는 Supabase Storage(공개·비공개 보관함 2개), 서버 경유 업로드, 캐시 1시간으로 즉시 내림 | Accepted |
+| [0030](./0030-one-review-rule-partial-unique-index.md) | 1인 1향수 1시향기는 화면 안내 + 서버 확인 + 부분 유니크 인덱스로 지킨다 | Accepted |
+| [0031](./0031-font-icon-bundling-official-packages.md) | 서체는 Pretendard 공식 동적 서브셋 패키지(같은 출처), 아이콘은 lucide-react로 쓰는 것만 — 0025의 "스프라이트" 대체 | Accepted |
+| [0032](./0032-css-tailwind-with-token-only-theme.md) | CSS는 Tailwind CSS, 테마에는 08 디자인 토큰만 등록(기본 색 목록 제거) | Accepted |
+| [0033](./0033-test-strategy-and-ci-quality-gates.md) | 테스트·품질 게이트 — 검사 5종을 개발 순서에 맞춰 단계적으로 켜고, 핵심 규칙 테스트는 처음부터 필수 | Accepted |
+| [0034](./0034-dependency-license-policy.md) | 의존성 라이선스 정책 — 허용형만, 조건부는 예외 등록, GPL·AGPL·상업 제한·불명은 금지 | Accepted |
+| [0035](./0035-privacy-outsourcing-and-overseas-transfer.md) | 처리위탁은 Vercel·Supabase(카카오는 위탁 아님), 국외 이전 보수적 공개, 접속 로그 최대 7일 | Accepted |

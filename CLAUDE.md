@@ -39,7 +39,7 @@
 6. ERD (스키마 설계) — ✅ 완료 (`docs/06-erd.md`, 2026-09-27 확정)
 7. API 명세 (OpenAPI) — ✅ 완료 (`docs/07-api-spec.md` §1~§4 + `docs/07-api-spec.yaml`, 2026-11-12 확정). 관련 ADR 0017·0023
 8. UI 상세 디자인 (색상, 컴포넌트, 반응형 등) — ✅ 완료 (`docs/08-ui-design.md` + `docs/design/style-guide.html`, 2026-11-16 확정. 흰 배경·코발트 블루·검정, 빨간색 없음 — ADR 0024·0025 Accepted. 부가 산출물 4종 승인)
-9. 기술 스택 최종 확정 (관련 ADR 포함) — 🔶 **진행 중** (2026-11-16 착수). 결정 순서 10항목: ① 언어·프레임워크 ✅ **Next.js + TypeScript 한 코드베이스**(ADR 0026) ② 호스팅+DB ✅ **Vercel(`icn1`) + Supabase PostgreSQL(`ap-northeast-2`), 둘 다 서울**(ADR 0027 — 개발 중 무료, Vercel Hobby는 비상업 전용이라 출시·수익화 시 Pro 검토) ③ 로그인 ✅ **카카오 1개 + Better Auth + DB 세션(회원·관리자 모두 활동 없으면 20분) + Origin 검사**(ADR 0028 — 이메일 칸은 대체 값, 10단계 직후 스파이크로 검증·실패 시 직접 구현. 네이버·구글은 출시 후 추가 가능하나 다계정 문제 재판단 필요) ④ 이미지 저장·업로드·캐시 무효화 ⑤ 1인 1향수 1시향기 구현 ⑥ 서체·아이콘 번들 ⑦ 테스트·품질 게이트 ADR ⑧ 라이선스 2차 ADR ⑨ 처리방침 위탁·국외이전 채우기 ⑩ 월 비용 추정 → 최종 `docs/09-tech-stack.md`. 운영자는 1인·프로그래밍 첫 경험 — 후보 비교 시 학습 부담을 주요 기준으로 둔다
+9. 기술 스택 최종 확정 (관련 ADR 포함) — 🔶 **진행 중** (2026-11-16 착수). 결정 순서 10항목: ① 언어·프레임워크 ✅ **Next.js + TypeScript 한 코드베이스**(ADR 0026) ② 호스팅+DB ✅ **Vercel(`icn1`) + Supabase PostgreSQL(`ap-northeast-2`), 둘 다 서울**(ADR 0027 — 개발 중 무료, Vercel Hobby는 비상업 전용이라 출시·수익화 시 Pro 검토) ③ 로그인 ✅ **카카오 1개 + Better Auth + DB 세션(회원·관리자 모두 활동 없으면 20분) + Origin 검사**(ADR 0028 — 이메일 칸은 대체 값, 10단계 직후 스파이크로 검증·실패 시 직접 구현. 네이버·구글은 출시 후 추가 가능하나 다계정 문제 재판단 필요) ④ 이미지 ✅ **Supabase Storage 공개·비공개 보관함 2개 + 서버 경유 multipart 업로드(~2MB) + 캐시 1시간, 비공개 시 공개 보관함에서 삭제**(ADR 0029 — Pro 전환 시 Smart CDN 자동 무효화 추가) ⑤ 1인 1향수 1시향기 ✅ **화면 안내 + 서버 확인 + 삭제분 제외 부분 유니크 인덱스, DB 거절은 409 `ALREADY_REVIEWED`로 변환, 저장·집계는 한 트랜잭션**(ADR 0030) ⑥ 서체·아이콘 ✅ **npm `pretendard` 공식 동적 서브셋 CSS를 같은 출처에서 제공(장기 캐시) + `lucide-react`로 쓰는 아이콘만 인라인 SVG**(ADR 0031 — 0025의 "스프라이트" 대체) (추가) CSS 방식 ✅ **Tailwind CSS, 테마에 08 토큰만 등록·기본 색 제거**(ADR 0032) ⑦ 테스트·품질 게이트 ✅ **검사 5종(ESLint+Prettier·TypeScript·Vitest+실제 PostgreSQL·Playwright FL1~FL4·Lighthouse+axe)을 단계적으로 켬, 핵심 규칙 테스트는 처음부터 필수, 숫자 기준은 10단계**(ADR 0033) ⑧ 라이선스 2차 ✅ **허용(MIT·ISC·0BSD·BSD·Apache-2.0·OFL-1.1·CC0·Unlicense·CC-BY-4.0) / 조건부(MPL·LGPL, 예외 등록) / 금지(GPL·AGPL·SSPL·BUSL·비상업·불명), 런타임·개발용 같은 목록, CI 검사·고지 파일 자동 생성**(ADR 0034) ⑨ 처리방침 ✅ **수탁자 Vercel·Supabase(카카오는 위탁 아님), 국외 이전 보수적 공개(제28조의8 ①3), 접속 로그 최대 7일**(ADR 0035 — 통비법 3개월·카카오 해석은 출시 전 확인) ⑩ 월 비용 추정 → 최종 `docs/09-tech-stack.md`. 운영자는 1인·프로그래밍 첫 경험 — 후보 비교 시 학습 부담을 주요 기준으로 둔다
 10. 개발 환경 세팅 → 코딩 시작
 
 ### 현재 작업 상태 (2026-11-16)
@@ -49,14 +49,14 @@
 **8단계 산출물 (✅ 2026-11-16 확정)**
 
 - 본 산출물: [`docs/08-ui-design.md`](docs/08-ui-design.md) · [`docs/design/style-guide.html`](docs/design/style-guide.html)(토큰·컴포넌트 실물) · ADR [0024 색상 체계](docs/adr/0024-color-system-white-cobalt-black.md) · [0025 서체·아이콘](docs/adr/0025-typeface-and-icon-set.md)(둘 다 Accepted). 시연 데모 `ppt/index.html`은 새 팔레트로 색만 교체했다(♥ 모음·내 정보 보기는 데모에 없음).
-- 부가 산출물: [`docs/quality/license-audit.md`](docs/quality/license-audit.md)(1차) · [`docs/legal/terms-of-service.md`](docs/legal/terms-of-service.md)(전문) · [`docs/legal/privacy-policy.md`](docs/legal/privacy-policy.md)(본문 확정, 위탁·로그 보관기간 등 `[ ]`는 9단계 후) · [`docs/guides/user-manual.md`](docs/guides/user-manual.md).
+- 부가 산출물: [`docs/quality/license-audit.md`](docs/quality/license-audit.md)(1차) · [`docs/legal/terms-of-service.md`](docs/legal/terms-of-service.md)(전문) · [`docs/legal/privacy-policy.md`](docs/legal/privacy-policy.md)(본문 확정, 2026-11-17 위탁·국외 이전·로그 보관기간 채움 — 남은 `[ ]`는 출시 전 항목) · [`docs/guides/user-manual.md`](docs/guides/user-manual.md).
 - 검증 한계: 스타일 가이드를 브라우저로 렌더링해 보지 못했다(`file://` 접근 불가).
 
 **다음 세션 재시작 지점**
 
-1. 9단계 기술 스택 진행 중 — ①은 ADR 0026, ②는 ADR 0027, ③은 ADR 0028로 확정. **다음은 ④ 이미지**(저장·업로드 방식·비공개 시 CDN 캐시 무효화). ③의 후속 정리는 2026-11-16 반영 완료(07 md·yaml `provider` = `kakao`만, Spectral 0건 / 02 C1·04 §3·§7·08 로그인 시트). **01 M4("카카오/구글 중 1개")는 승인 범위에 없어 손대지 않았다** — 필요 시 사용자에게 확인. 아래 5번 항목과 제약(serverless 우선·개인정보 국내 리전·비용 최소화)에서 출발한다.
+1. 9단계 기술 스택 진행 중 — ①은 ADR 0026, ②는 ADR 0027, ③은 ADR 0028, ④는 ADR 0029, ⑤는 ADR 0030, ⑥은 ADR 0031, 추가 항목 CSS 방식은 ADR 0032(모두 2026-11-17)로 확정. ⑦은 ADR 0033, ⑧은 ADR 0034, ⑨는 ADR 0035(2026-11-17)로 확정. **다음은 ⑩ 월 비용 추정 → 최종 `docs/09-tech-stack.md`**. ⑤·⑥·CSS의 문서 정리(06 §3·§4, 07 `POST /reviews`, 08 §2·§3·§10)는 완료. ④의 후속: 07 부록 A는 완료 표시했으나 07 본문 §3.6·§4.4.3·§4.4.4와 yaml(4곳)의 "전달 방식 9단계 미정" 문구는 아직 미정리. ③의 후속 정리는 2026-11-16 반영 완료(07 md·yaml `provider` = `kakao`만, Spectral 0건 / 02 C1·04 §3·§7·08 로그인 시트). 01 M4도 2026-11-17 "카카오 1개"로 정정 완료(사용자 승인). 아래 5번 항목과 제약(serverless 우선·개인정보 국내 리전·비용 최소화)에서 출발한다.
 2. 8단계 승인 시 결정: 04 와이어프레임의 일부 표현(시연 데모 11px 글자 등)은 디자인이 대체한다. 약관 제3조 ④(고지 후 계속 이용 시 동의 간주) 승인. 제13조(이용 제한) 문구 유지 — **MVP에 회원 차단 기능은 만들지 않는다**(관리자 게시물 삭제로 대응, 조항은 권한 유보).
-3. 운영 시작 전 확정 필요(문서의 `[ ]` 표시): 운영자 명칭, 권리 침해 신고·문의 이메일, 개인정보 보호책임자, 서비스 개시일, 접속 로그 보관기간. 처리위탁 목록·국외이전은 9단계 후.
+3. 운영 시작 전 확정 필요(문서의 `[ ]` 표시): 운영자 명칭, 권리 침해 신고·문의 이메일, 개인정보 보호책임자, 서비스 개시일, 접속 로그 보관기간. 처리위탁 목록·국외이전은 2026-11-17 채움(ADR 0035), 수탁자 연락처만 출시 전.
 4. 개인정보 열람은 ✅ 2026-11-16 결정 — **MY 하단 "내 정보 보기" → 읽기 전용 모달**(화면 수 16 유지, API `GET /me?include=personal` 그대로). 04 §4.2·07 §3.3·08 §6.10·처리방침 제7조에 반영.
 4-1. **"나만의 ♥ 모음"(M13·D5) 반영 완료 (2026-11-16)**: 01·02·03·04 §4.2·05 §3.3·07 md(§2·§4.1·§4.3.3)·07 yaml(`GET /me/recommended-reviews`, `RecommendedReviewCard` = ReviewCard + `recommended_at`, 39경로, Spectral 0건)·08 §6.10·사용자 매뉴얼. ERD(06) 변경 없음. **03 시각화 아티팩트는 미반영** — 2026-11-16 읽기 결과 이 계정의 편집 권한(writer)이 확인되지 않고 외부 조직 아티팩트로 표시됨. 사용자에게 링크·권한 확인 필요
 5. 9단계 기술 스택에서 정할 것(07 부록 A): 이미지·로고 업로드 방식, 세션 저장소·만료·CSRF, 소셜 로그인 공급자 수(`kakao`\|`naver`\|`google` → C1의 "1개로 시작"), `post` 1인 1향수 1시향기 제약의 구현 방식과 동시 요청 중복 처리(ADR 0023), 이미지 비공개의 CDN 캐시 무효화, 서체·아이콘 번들 구성, 의존성 라이선스 정책 ADR(2차 감사). 429 한도 수치·`size` 상한은 구현 단계.
@@ -128,6 +128,7 @@
 - [ ] 최종 라이선스 감사 리포트 (의존성 + 폰트·아이콘 + 향수 이미지 출처)
 - [ ] 사용자 매뉴얼(도움말·커뮤니티 가이드) + 관리자 운영 매뉴얼
 - [ ] **AI 기본법 해당 없음 확인** (무-AI 정책이 유지되고 있는지 재확인)
+- [ ] **개인정보 법적 확인 2건**(ADR 0035): ① 통신비밀보호법 접속 기록 3개월 보관 의무 적용 여부 ② 카카오를 처리위탁에서 제외하는 해석 — 118 상담 또는 전문가 검토. 아울러 Vercel·Supabase DPA로 수탁자 연락처 기재·로그 보관기간 재확인
 - [ ] CI 품질 게이트 전부 통과 (1단계 N5 FCP 2.5초 · N10 WCAG AA 포함)
 
 ### AI 기본법 게이트
@@ -156,7 +157,7 @@
 
 **ID 규칙 변경**: Epic F 스토리(F1~F4)와 충돌하여 3단계의 핵심 흐름 ID를 `F1~F4` → **`FL1~FL4`**로 변경했다. 이후 `F*`는 스토리, `FL*`은 흐름을 가리킨다.
 
-ADR 진행 상황: ✅ [0008 탈퇴 시 익명 보존](docs/adr/0008-anonymized-retention-on-withdrawal.md) · ✅ [0009 이미지 조달·즉시 대응](docs/adr/0009-perfume-image-sourcing-and-takedown.md) · ✅ [0010 개인정보 최소 수집](docs/adr/0010-minimal-personal-data-collection.md) · ✅ [0011 소프트 삭제](docs/adr/0011-soft-delete-reviews.md) · ✅ [0014 쓰기 전 로그인](docs/adr/0014-login-before-write-entry.md) / 작성 예정: 무-AI 정책 · 의존성 라이선스 정책 · 테스트·품질 게이트 기준.
+ADR 진행 상황: ✅ [0008 탈퇴 시 익명 보존](docs/adr/0008-anonymized-retention-on-withdrawal.md) · ✅ [0009 이미지 조달·즉시 대응](docs/adr/0009-perfume-image-sourcing-and-takedown.md) · ✅ [0010 개인정보 최소 수집](docs/adr/0010-minimal-personal-data-collection.md) · ✅ [0011 소프트 삭제](docs/adr/0011-soft-delete-reviews.md) · ✅ [0014 쓰기 전 로그인](docs/adr/0014-login-before-write-entry.md) / ✅ [0033 테스트·품질 게이트](docs/adr/0033-test-strategy-and-ci-quality-gates.md) · ✅ [0034 의존성 라이선스 정책](docs/adr/0034-dependency-license-policy.md) / 작성 예정: 무-AI 정책.
 
 관련 산출물: ✅ [`docs/legal/image-rights-and-takedown.md`](docs/legal/image-rights-and-takedown.md) (확정) · 🔶 [`docs/legal/terms-of-service.md`](docs/legal/terms-of-service.md) (제7~10조 확정, 나머지 8단계).
 **개인정보처리방침(8단계)의 입력값은 5단계 §5 개인정보 항목표에서 확보됐다.** 8단계 약관 작성 시 **약관 개정 공지 방식을 "서비스 내 게시"로 명시**해야 한다 — 이메일을 수집하지 않으므로(ADR 0010) F2 AC가 이 조문에 의존한다.
@@ -182,5 +183,5 @@ ADR 진행 상황: ✅ [0008 탈퇴 시 익명 보존](docs/adr/0008-anonymized-
 - 기술 스택, 실행/빌드/테스트 명령어 (9단계 이후)
 - 디렉토리 구조, 코딩 컨벤션 (10단계 이후)
 - DB 스키마 요약 (ERD 확정 후)
-- 의존성 라이선스 허용/금지 목록 (9단계 이후)
+- 의존성 라이선스 허용/금지 목록 — ✅ ADR 0034로 확정(2026-11-17). 10단계에서 이 섹션에 요약 추가
 - CI 품질 게이트 기준값 — 커버리지 임계치 등 (10단계 이후)

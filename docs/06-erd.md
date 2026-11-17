@@ -3,6 +3,8 @@
 > 프로젝트: **perfumeishuman — "향수가 사람이라면?"**
 > 작성일: 2026-09-27 · 상태: **확정**
 > 근거 문서: [05-data-model.md](./05-data-model.md)
+> 개정: 2026-11-17 — 처리위탁 목록 미결 항목을 완료로 표시(수탁자 Vercel·Supabase, 카카오는 위탁 아님). 근거: [ADR 0035](./adr/0035-privacy-outsourcing-and-overseas-transfer.md)
+> 개정: 2026-11-17 — `post` 1인 1향수 1시향기 제약의 구현 방식 확정 표시(§3·§4): 서버 확인 + 부분 유니크 인덱스. 컬럼 변경 없음, `erd.png` 그대로. 근거: [ADR 0030](./adr/0030-one-review-rule-partial-unique-index.md)
 > 개정: 2026-11-12 — 7단계 확정 반영: `post`의 1인 1향수 1시향기 제약 추가(§3·§4). 근거: [ADR 0023](./adr/0023-one-review-per-user-per-perfume.md)
 > 개정: 2026-10-28 — 계열 이름 통일(ADR 0019): 연결 테이블 `note_has_perfume` → `accord_has_perfume`, `accord.note_name` → `accord_name`, `accord.note_slug` → `accord_slug`, 연결 테이블의 FK 컬럼 `note_note_name` → `accord_accord_name`. **`perfume.notes`(향수의 노트 텍스트)는 그대로.** [ADR 0019](./adr/0019-accord-naming-unification.md)
 > 관련 ADR: [0003](./adr/0003-controlled-vocabulary-tags.md) · [0007](./adr/0007-reduce-tag-questions-to-two.md) · [0008](./adr/0008-anonymized-retention-on-withdrawal.md) · [0009](./adr/0009-perfume-image-sourcing-and-takedown.md) · [0010](./adr/0010-minimal-personal-data-collection.md) · [0011](./adr/0011-soft-delete-reviews.md) · [0012](./adr/0012-identifier-formats.md) · [0013](./adr/0013-age-tag-multi-select.md)
@@ -58,7 +60,7 @@ ERD 본체는 다이어그램 자체(`erd.png`)다. 이 문서는 두 가지 역
 | **관리자 식별 필드 통일** | `post.manager`, `report.manager`, `report.report_person`, `perfumeimage.adminwho`, `adminlog.user_id` 전부 `user.id`를 가리키는 FK(INT)로 통일한다. 별도 admin 테이블은 두지 않는다 — 관리자는 `user.admin_flag=1`인 사용자일 뿐이며, 이 구분은 애플리케이션 레벨에서 보장한다. |
 | **소프트 삭제 처리 이력의 스키마 반영 확인** | ADR 0011이 요구한 "삭제 상태·삭제 시각·처리 주체·사유"가 `post.delete_status`, `post.delete_time`, `post.manager`, `post.manage_reason`으로 반영됐다. |
 | **`taganswer`에 선택 순서 필드 확정** | `selection_sequence`. 대표 태그는 화면 표시 순서가 아니라 "사용자가 실제로 고른 순서"로 판정하므로(ADR 0013), 답변 건마다 이 값을 저장한다. |
-| **`post`의 1인 1향수 1시향기 제약** (2026-11-12 추가, [ADR 0023](./adr/0023-one-review-per-user-per-perfume.md)) | `post`의 (`user_id`, `perfume_id`) 중복을 막되, **소프트 삭제된 행(`delete_status`)은 세지 않는다.** 단순 UNIQUE 제약으로는 표현되지 않으므로 컬럼은 늘리지 않고, 구현 방식(애플리케이션 검사 + 부분 유니크/생성 컬럼 등)과 동시 요청 처리는 9단계에서 정한다. 스키마의 컬럼 구성은 바뀌지 않아 `erd.png`는 그대로다. |
+| **`post`의 1인 1향수 1시향기 제약** (2026-11-12 추가, [ADR 0023](./adr/0023-one-review-per-user-per-perfume.md)) | `post`의 (`user_id`, `perfume_id`) 중복을 막되, **소프트 삭제된 행(`delete_status`)은 세지 않는다.** 단순 UNIQUE 제약으로는 표현되지 않으므로 컬럼은 늘리지 않고, **서버 확인 + 삭제되지 않은 행에만 거는 (`user_id`, `perfume_id`) 부분 유니크 인덱스로 구현하며, 동시 요청은 DB가 막는다**([ADR 0030](./adr/0030-one-review-rule-partial-unique-index.md)). 스키마의 컬럼 구성은 바뀌지 않아 `erd.png`는 그대로다. |
 | **날짜형 필드 타입 정리** | `perfumeimage.collect_date`, `policyversion.start_date`, `policyversion.post_date`를 VARCHAR에서 DATETIME으로 정정했다. |
 
 ## 4. 여전히 다음 단계로 남는 것
@@ -69,10 +71,10 @@ ERD 본체는 다이어그램 자체(`erd.png`)다. 이 문서는 두 가지 역
 |---|---|
 | ✅ 집계 컬럼의 **갱신 방식**(트리거 / 애플리케이션 갱신 / 주기 재계산) | **[ADR 0016](./adr/0016-aggregate-update-and-soft-delete-scope.md)(2026-10-01)에서 확정** — 애플리케이션 증감 + 주기 보정. 7단계는 엔드포인트별 갱신 대상을 명시한다 |
 | ✅ 소프트 삭제 조회 제외 방식(뷰 / 기본 스코프) | **[ADR 0016](./adr/0016-aggregate-update-and-soft-delete-scope.md)(2026-10-01)에서 확정** — 기본 스코프. 7단계는 "관리자 API 외 응답에 삭제분 없음"을 명시하고, 구체 구현은 9·10단계 |
-| `post` 1인 1향수 1시향기 제약의 구현 방식·동시 요청 중복 처리 | ADR 0023 Consequences, 9단계 |
+| ✅ `post` 1인 1향수 1시향기 제약의 구현 방식·동시 요청 중복 처리 — 서버 확인 + 부분 유니크 인덱스, DB 거절은 409로 변환 | **2026-11-17 완료** ([ADR 0030](./adr/0030-one-review-rule-partial-unique-index.md)) |
 | 보관기간 경과분 완전 삭제 배치 | ADR 0011 §3, 10단계 환경 세팅에서 구현 |
 | 약관 개정 공지 방식 "서비스 내 게시" 명시 | 8단계 약관 작성 시 반영 |
-| 처리위탁 목록(호스팅·DB·소셜 공급자) | 9단계 기술 스택 확정 후 8단계 처리방침에 반영 |
+| ✅ 처리위탁 목록(호스팅·DB·소셜 공급자) — 처리방침 제6조에 반영 | 2026-11-17 완료 ([ADR 0035](./adr/0035-privacy-outsourcing-and-overseas-transfer.md)) |
 | 인프라 접속 로그 보존기간 | 9·10단계 |
 
 계열 통제 어휘 최종 세트(ADR 0015)와 슬러그·닉네임·프로필 식별자 생성 규칙(ADR 0012)은 이미 별도 ADR로 확정되어 있고, 이번 ERD가 그 결정을 그대로 반영했다(별도 재확인 불필요).
