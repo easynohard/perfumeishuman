@@ -1,0 +1,44 @@
+# 자동 검사 로봇 (CI) — ADR 0033 검사 1·2단계 + ADR 0034 라이선스 검사
+# 코드를 올리거나(push) PR을 만들 때마다 실행된다. 하나라도 실패하면 ❌.
+# 기능 테스트·화면 흐름·속도 검사(3~5)는 해당 기능이 생길 때 이 파일에 추가한다.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: 문법·타입·모양·라이선스·빌드 검사
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 코드 내려받기
+        uses: actions/checkout@v5
+
+      - name: Node.js 준비
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: 부품 설치 (package-lock.json 그대로)
+        run: npm ci
+
+      - name: 1. 문법 검사 (ESLint)
+        run: npm run lint
+
+      - name: 1. 코드 모양 검사 (Prettier)
+        run: npm run format:check
+
+      - name: 2. 타입 검사 (TypeScript)
+        run: npm run typecheck
+
+      - name: 라이선스 검사 (ADR 0034)
+        run: npm run license:check
+
+      - name: 사이트 빌드
+        run: npm run build
